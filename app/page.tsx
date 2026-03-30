@@ -155,18 +155,14 @@ export default function APNLanding() {
 
       {/* ══════════════ HERO ══════════════ */}
       <section className={styles.hero}>
-        {/* Three.js robot canvas (desktop only — hidden via CSS on mobile) */}
-        {!isMobile && (
-          <div className={styles.heroCanvas}>
-            <ThreeScene />
-          </div>
-        )}
+        {/* Fixed robot canvas — position:fixed in ThreeScene.module.css */}
+        {!isMobile && <ThreeScene />}
 
         {/* CSS scanlines overlay */}
         <div className={styles.scanlines} aria-hidden />
 
-        {/* Text content */}
-        <div className={styles.heroInner}>
+        {/* Sticky text wrapper — left half, stays centered as hero scrolls */}
+        <div className={styles.heroSticky}>
           <div className={styles.heroLeft}>
             <div className={styles.heroBadgeRow}>
               <div className={styles.heroBadge}>

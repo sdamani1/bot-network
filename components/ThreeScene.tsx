@@ -1,8 +1,9 @@
 'use client'
 
-// Three.js humanoid robot hero — dynamic import only (ssr: false)
-// Proper anatomical humanoid: box head, cylinder limbs, sphere joints
-// Idle breathing + head scan + arm sway + mouse parallax + scroll walk
+// Cinematic evil humanoid robot — fixed right-half canvas.
+// Silver body, red eyes, dramatic spotlights, red glowing platform.
+// Animations: breathing, head scan, eye pulse, idle float, mouse tracking.
+// Scroll: fades 80–100vh, display:none after 220vh.
 
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
@@ -18,264 +19,306 @@ export default function ThreeScene() {
   useEffect(() => {
     const container = mountRef.current
     if (!container) return
+    if (!container.clientWidth || !container.clientHeight) return
 
     /* ─── RENDERER ─── */
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(container.clientWidth, container.clientHeight)
-    renderer.shadowMap.enabled = false
+    renderer.setClearColor(0x050508, 1)
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     container.appendChild(renderer.domElement)
 
     /* ─── SCENE / CAMERA ─── */
     const scene = new THREE.Scene()
-    scene.fog = new THREE.Fog(0x0d0d0f, 16, 30)
 
     const camera = new THREE.PerspectiveCamera(
-      48,
+      42,
       container.clientWidth / container.clientHeight,
       0.1,
-      500
+      200
     )
-    // Camera slightly elevated looking at robot center-right
-    camera.position.set(0, 1.0, 9)
-    camera.lookAt(1.8, 0.3, 0)
+    // z=5 fits the 1.4x-scaled 4-unit robot in the 50vw canvas
+    camera.position.set(0, 0.5, 5.0)
+    camera.lookAt(0, 0.5, 0)
 
-    /* ─── LIGHTING ─── */
-    // Ambient — dark blue-grey
-    scene.add(new THREE.AmbientLight(0x404060, 0.4))
+    /* ─── LIGHTS ─── */
+    scene.add(new THREE.AmbientLight(0x101018, 0.3))
 
-    // Key — top-right directional
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.2)
-    keyLight.position.set(5, 8, 4)
-    scene.add(keyLight)
+    // Primary spotlight — directly above
+    const spotTop = new THREE.SpotLight(0xffffff, 4.0)
+    spotTop.position.set(0, 8, 2)
+    spotTop.angle = 0.35
+    spotTop.penumbra = 0.4
+    spotTop.castShadow = true
+    spotTop.shadow.mapSize.set(1024, 1024)
+    spotTop.target.position.set(0, 0, 0)
+    scene.add(spotTop)
+    scene.add(spotTop.target)
 
-    // Fill — green point from front
-    const greenLight = new THREE.PointLight(0x00ff88, 0.5, 10)
-    greenLight.position.set(2, 2, 6)
-    scene.add(greenLight)
+    // Front-left fill spotlight
+    const spotFront = new THREE.SpotLight(0xffffff, 2.0)
+    spotFront.position.set(-4, 3, 4)
+    spotFront.angle = 0.5
+    spotFront.penumbra = 0.3
+    spotFront.target.position.set(0, 0, 0)
+    scene.add(spotFront)
+    scene.add(spotFront.target)
 
-    // Rim — blue from behind
-    const rimLight = new THREE.PointLight(0x4444ff, 0.3, 14)
-    rimLight.position.set(0, 3, -7)
+    // Blue rim from behind
+    const rimLight = new THREE.DirectionalLight(0x4444ff, 0.4)
+    rimLight.position.set(0, 2, -5)
     scene.add(rimLight)
 
     /* ─── MATERIALS ─── */
-    const bodyMat = new THREE.MeshStandardMaterial({
-      color: 0x8a8a9a,
+    const primaryMat = new THREE.MeshStandardMaterial({
+      color: 0xe8e8f0,
+      metalness: 0.95,
+      roughness: 0.05,
+    })
+    const secondaryMat = new THREE.MeshStandardMaterial({
+      color: 0xb0b0c0,
+      metalness: 0.9,
+      roughness: 0.1,
+    })
+    const jointMat = new THREE.MeshStandardMaterial({
+      color: 0x808090,
       metalness: 0.8,
       roughness: 0.2,
     })
-
-    const emissiveMat = new THREE.MeshStandardMaterial({
-      color: 0x003318,
-      emissive: new THREE.Color(0x00ff88),
-      emissiveIntensity: 0.8,
-      metalness: 0.4,
-      roughness: 0.4,
+    const eyeMat = new THREE.MeshStandardMaterial({
+      color: 0xff0000,
+      emissive: new THREE.Color(0xff0000),
+      emissiveIntensity: 2.5,
     })
 
-    const jointMat = new THREE.MeshStandardMaterial({
-      color: 0x6a6a7e,
-      metalness: 0.9,
-      roughness: 0.15,
-      emissive: new THREE.Color(0x00ff88),
-      emissiveIntensity: 0.12,
-    })
+    /* ─── SHADOW RECEIVER ─── */
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 10),
+      new THREE.MeshStandardMaterial({ color: 0x080810, roughness: 0.9, metalness: 0 })
+    )
+    ground.rotation.x = -Math.PI / 2
+    ground.position.y = -1.45
+    ground.receiveShadow = true
+    scene.add(ground)
 
-    const torusMat = new THREE.MeshStandardMaterial({
-      color: 0x002211,
-      emissive: new THREE.Color(0x00ff88),
-      emissiveIntensity: 0.7,
-    })
+    /* ─── HELPER: create a shadow-casting mesh ─── */
+    function mk(geo: THREE.BufferGeometry, mat: THREE.Material): THREE.Mesh {
+      const m = new THREE.Mesh(geo, mat)
+      m.castShadow = true
+      m.receiveShadow = true
+      return m
+    }
 
-    /* ─── GROUP HIERARCHY ─── */
-    // outerGroup: scroll parallax
+    /* ─── GROUPS ─── */
     const outerGroup = new THREE.Group()
-    outerGroup.position.set(1.8, -0.2, 0)
     scene.add(outerGroup)
 
-    // robotGroup: mouse tilt
     const robotGroup = new THREE.Group()
+    robotGroup.scale.setScalar(1.4)
+    robotGroup.rotation.z = 0.03   // subtle weight shift
     outerGroup.add(robotGroup)
 
-    // headGroup: head scan animation (pivot at head center)
+    // Head group — head scan + initial downward tilt
     const headGroup = new THREE.Group()
-    headGroup.position.set(0, 1.85, 0)
+    headGroup.position.set(0, 1.65, 0)
+    headGroup.rotation.x = 0.14   // watching the viewer
     robotGroup.add(headGroup)
 
-    // torsoGroup: breathing scale
+    // Torso group — breathing scale
     const torsoGroup = new THREE.Group()
-    torsoGroup.position.set(0, 0.7, 0)
+    torsoGroup.position.set(0, 0.8, 0)
     robotGroup.add(torsoGroup)
 
-    // arm groups: pivot at shoulder
+    // Arm groups — pivot at shoulder center
     const leftArmGroup = new THREE.Group()
-    leftArmGroup.position.set(-0.55, 1.1, 0)
+    leftArmGroup.position.set(-0.37, 1.1, 0)
+    leftArmGroup.rotation.z = 0.06   // natural splay
     robotGroup.add(leftArmGroup)
 
     const rightArmGroup = new THREE.Group()
-    rightArmGroup.position.set(0.55, 1.1, 0)
+    rightArmGroup.position.set(0.37, 1.1, 0)
+    rightArmGroup.rotation.z = -0.06
     robotGroup.add(rightArmGroup)
 
     /* ─── HEAD ─── */
-    const headMesh = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.54, 0.44), bodyMat)
-    headGroup.add(headMesh)
+    headGroup.add(mk(new THREE.BoxGeometry(0.35, 0.4, 0.3), primaryMat))
 
-    // Eye slots — emissive green horizontal bars
-    const eyeGeo = new THREE.BoxGeometry(0.13, 0.055, 0.04)
-    const eyeL = new THREE.Mesh(eyeGeo, emissiveMat)
-    eyeL.position.set(-0.13, 0.05, 0.225)
+    // Eye slots — narrow horizontal bars (evil)
+    const eyeGeo = new THREE.BoxGeometry(0.1, 0.038, 0.03)
+    const eyeL = mk(eyeGeo, eyeMat)
+    eyeL.position.set(-0.09, 0.06, 0.156)
     headGroup.add(eyeL)
-    const eyeR = new THREE.Mesh(eyeGeo, emissiveMat)
-    eyeR.position.set( 0.13, 0.05, 0.225)
+    const eyeR = mk(eyeGeo, eyeMat)
+    eyeR.position.set(0.09, 0.06, 0.156)
     headGroup.add(eyeR)
 
-    // Eye point lights (follow head rotation)
-    const eyeLightL = new THREE.PointLight(0x00ff88, 0.7, 1.8)
-    eyeLightL.position.set(-0.13, 0.05, 0.5)
-    headGroup.add(eyeLightL)
-    const eyeLightR = new THREE.PointLight(0x00ff88, 0.7, 1.8)
-    eyeLightR.position.set( 0.13, 0.05, 0.5)
-    headGroup.add(eyeLightR)
+    // Eye glow — red PointLight, follows head
+    const eyeGlowLight = new THREE.PointLight(0xff2200, 1.0, 3)
+    eyeGlowLight.position.set(0, 0.06, 0.5)
+    headGroup.add(eyeGlowLight)
 
     /* ─── NECK ─── */
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.24, 10), bodyMat)
-    neck.position.set(0, 1.54, 0)
+    const neck = mk(new THREE.CylinderGeometry(0.06, 0.075, 0.2, 10), jointMat)
+    neck.position.set(0, 1.46, 0)
     robotGroup.add(neck)
 
     /* ─── TORSO ─── */
-    const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.84, 1.08, 0.44), bodyMat)
-    torsoGroup.add(torsoMesh)
+    torsoGroup.add(mk(new THREE.BoxGeometry(0.6, 0.8, 0.28), primaryMat))
+    // Panel accent — dark secondary plate on chest
+    const panel = mk(new THREE.BoxGeometry(0.22, 0.13, 0.01), secondaryMat)
+    panel.position.set(0, 0.1, 0.145)
+    torsoGroup.add(panel)
 
-    // Chest panel — emissive
-    const chestPanel = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.17, 0.02), emissiveMat)
-    chestPanel.position.set(0, 0.1, 0.235)
-    torsoGroup.add(chestPanel)
+    /* ─── SHOULDERS (visible spheres at arm roots) ─── */
+    const shoulderL = mk(new THREE.SphereGeometry(0.12, 12, 12), jointMat)
+    shoulderL.position.set(-0.37, 1.1, 0)
+    robotGroup.add(shoulderL)
+    const shoulderR = mk(new THREE.SphereGeometry(0.12, 12, 12), jointMat)
+    shoulderR.position.set(0.37, 1.1, 0)
+    robotGroup.add(shoulderR)
 
-    const chestLight = new THREE.PointLight(0x00ff88, 0.45, 2.2)
-    chestLight.position.set(0, 0.8, 0.6)
-    robotGroup.add(chestLight)
-
-    /* ─── LEFT ARM (all relative to leftArmGroup pivot at shoulder) ─── */
-    // Shoulder sphere
-    leftArmGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 12), jointMat))
+    /* ─── LEFT ARM (all coords relative to leftArmGroup shoulder pivot) ─── */
     // Upper arm
-    const leftUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.092, 0.082, 0.5, 10), bodyMat)
-    leftUpperArm.position.set(0, -0.36, 0)
-    leftArmGroup.add(leftUpperArm)
+    const lUA = mk(new THREE.CylinderGeometry(0.08, 0.072, 0.5, 10), secondaryMat)
+    lUA.position.set(0, -0.37, 0)
+    leftArmGroup.add(lUA)
     // Elbow
-    const leftElbow = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 10), jointMat)
-    leftElbow.position.set(0, -0.64, 0)
-    leftArmGroup.add(leftElbow)
-    // Lower arm
-    const leftLowerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.068, 0.46, 10), bodyMat)
-    leftLowerArm.position.set(0, -0.9, 0)
-    leftArmGroup.add(leftLowerArm)
+    const lE = mk(new THREE.SphereGeometry(0.09, 10, 10), jointMat)
+    lE.position.set(0, -0.62, 0)
+    leftArmGroup.add(lE)
+    // Forearm — slight forward cant for natural elbow bend
+    const lFA = mk(new THREE.CylinderGeometry(0.065, 0.058, 0.45, 10), primaryMat)
+    lFA.position.set(0, -0.89, 0.04)
+    lFA.rotation.x = 0.12
+    leftArmGroup.add(lFA)
     // Hand
-    const leftHand = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.11, 0.088), bodyMat)
-    leftHand.position.set(0, -1.17, 0)
-    leftArmGroup.add(leftHand)
+    const lH = mk(new THREE.BoxGeometry(0.12, 0.18, 0.08), secondaryMat)
+    lH.position.set(0, -1.17, 0.07)
+    leftArmGroup.add(lH)
 
-    /* ─── RIGHT ARM ─── */
-    rightArmGroup.add(new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 12), jointMat))
-    const rightUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.092, 0.082, 0.5, 10), bodyMat)
-    rightUpperArm.position.set(0, -0.36, 0)
-    rightArmGroup.add(rightUpperArm)
-    const rightElbow = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 10), jointMat)
-    rightElbow.position.set(0, -0.64, 0)
-    rightArmGroup.add(rightElbow)
-    const rightLowerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.068, 0.46, 10), bodyMat)
-    rightLowerArm.position.set(0, -0.9, 0)
-    rightArmGroup.add(rightLowerArm)
-    const rightHand = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.11, 0.088), bodyMat)
-    rightHand.position.set(0, -1.17, 0)
-    rightArmGroup.add(rightHand)
+    /* ─── RIGHT ARM (mirror) ─── */
+    const rUA = mk(new THREE.CylinderGeometry(0.08, 0.072, 0.5, 10), secondaryMat)
+    rUA.position.set(0, -0.37, 0)
+    rightArmGroup.add(rUA)
+    const rE = mk(new THREE.SphereGeometry(0.09, 10, 10), jointMat)
+    rE.position.set(0, -0.62, 0)
+    rightArmGroup.add(rE)
+    const rFA = mk(new THREE.CylinderGeometry(0.065, 0.058, 0.45, 10), primaryMat)
+    rFA.position.set(0, -0.89, 0.04)
+    rFA.rotation.x = 0.12
+    rightArmGroup.add(rFA)
+    const rH = mk(new THREE.BoxGeometry(0.12, 0.18, 0.08), secondaryMat)
+    rH.position.set(0, -1.17, 0.07)
+    rightArmGroup.add(rH)
 
     /* ─── HIPS ─── */
-    const hips = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.27, 0.41), bodyMat)
-    hips.position.set(0, 0.12, 0)
+    const hips = mk(new THREE.BoxGeometry(0.5, 0.15, 0.25), primaryMat)
+    hips.position.set(0, 0.25, 0)
     robotGroup.add(hips)
 
     // Hip joints
-    const leftHipJoint = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), jointMat)
-    leftHipJoint.position.set(-0.27, -0.05, 0)
-    robotGroup.add(leftHipJoint)
-    const rightHipJoint = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), jointMat)
-    rightHipJoint.position.set( 0.27, -0.05, 0)
-    robotGroup.add(rightHipJoint)
+    const lHJ = mk(new THREE.SphereGeometry(0.1, 10, 10), jointMat)
+    lHJ.position.set(-0.17, 0.14, 0)
+    robotGroup.add(lHJ)
+    const rHJ = mk(new THREE.SphereGeometry(0.1, 10, 10), jointMat)
+    rHJ.position.set(0.17, 0.14, 0)
+    robotGroup.add(rHJ)
 
-    /* ─── LEGS ─── */
-    // Upper legs
-    const leftUpperLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.126, 0.108, 0.57, 10), bodyMat)
-    leftUpperLeg.position.set(-0.27, -0.38, 0)
-    robotGroup.add(leftUpperLeg)
-    const rightUpperLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.126, 0.108, 0.57, 10), bodyMat)
-    rightUpperLeg.position.set( 0.27, -0.38, 0)
-    robotGroup.add(rightUpperLeg)
+    /* ─── UPPER LEGS ─── */
+    const lUL = mk(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 10), secondaryMat)
+    lUL.position.set(-0.17, -0.08, 0)
+    robotGroup.add(lUL)
+    const rUL = mk(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 10), secondaryMat)
+    rUL.position.set(0.17, -0.08, 0)
+    robotGroup.add(rUL)
 
-    // Knee joints
-    const leftKnee = new THREE.Mesh(new THREE.SphereGeometry(0.115, 10, 10), jointMat)
-    leftKnee.position.set(-0.27, -0.7, 0)
-    robotGroup.add(leftKnee)
-    const rightKnee = new THREE.Mesh(new THREE.SphereGeometry(0.115, 10, 10), jointMat)
-    rightKnee.position.set( 0.27, -0.7, 0)
-    robotGroup.add(rightKnee)
+    /* ─── KNEES ─── */
+    const lK = mk(new THREE.SphereGeometry(0.11, 10, 10), jointMat)
+    lK.position.set(-0.17, -0.41, 0)
+    robotGroup.add(lK)
+    const rK = mk(new THREE.SphereGeometry(0.11, 10, 10), jointMat)
+    rK.position.set(0.17, -0.41, 0)
+    robotGroup.add(rK)
 
-    // Lower legs
-    const leftLowerLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.096, 0.082, 0.54, 10), bodyMat)
-    leftLowerLeg.position.set(-0.27, -1.0, 0)
-    robotGroup.add(leftLowerLeg)
-    const rightLowerLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.096, 0.082, 0.54, 10), bodyMat)
-    rightLowerLeg.position.set( 0.27, -1.0, 0)
-    robotGroup.add(rightLowerLeg)
+    /* ─── LOWER LEGS ─── */
+    const lLL = mk(new THREE.CylinderGeometry(0.085, 0.075, 0.55, 10), primaryMat)
+    lLL.position.set(-0.17, -0.71, 0)
+    robotGroup.add(lLL)
+    const rLL = mk(new THREE.CylinderGeometry(0.085, 0.075, 0.55, 10), primaryMat)
+    rLL.position.set(0.17, -0.71, 0)
+    robotGroup.add(rLL)
 
-    // Feet
-    const footGeo = new THREE.BoxGeometry(0.2, 0.095, 0.33)
-    const leftFoot = new THREE.Mesh(footGeo, bodyMat)
-    leftFoot.position.set(-0.27, -1.32, 0.04)
-    robotGroup.add(leftFoot)
-    const rightFoot = new THREE.Mesh(footGeo, bodyMat)
-    rightFoot.position.set( 0.27, -1.32, 0.04)
-    robotGroup.add(rightFoot)
+    /* ─── FEET — extended forward ─── */
+    const lFt = mk(new THREE.BoxGeometry(0.18, 0.08, 0.28), primaryMat)
+    lFt.position.set(-0.17, -1.0, 0.05)
+    robotGroup.add(lFt)
+    const rFt = mk(new THREE.BoxGeometry(0.18, 0.08, 0.28), primaryMat)
+    rFt.position.set(0.17, -1.0, 0.05)
+    robotGroup.add(rFt)
 
-    /* ─── PLATFORM ─── */
-    // Glowing torus ring on ground
-    const torus = new THREE.Mesh(new THREE.TorusGeometry(0.88, 0.022, 8, 72), torusMat)
-    torus.rotation.x = -Math.PI / 2
-    torus.position.set(0, -1.4, 0)
-    robotGroup.add(torus)
+    /* ─── PLATFORM (world-space — not inside scaled robotGroup) ─── */
+    const platformGroup = new THREE.Group()
+    platformGroup.position.y = -1.45
+    scene.add(platformGroup)
 
-    // Secondary outer ring (dimmer)
-    const torus2Mat = new THREE.MeshStandardMaterial({
-      color: 0x001a0d,
-      emissive: new THREE.Color(0x00ff88),
-      emissiveIntensity: 0.3,
+    const torusMat1 = new THREE.MeshStandardMaterial({
+      color: 0x330000,
+      emissive: new THREE.Color(0xff2200),
+      emissiveIntensity: 0.9,
     })
-    const torus2 = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.014, 8, 72), torus2Mat)
-    torus2.rotation.x = -Math.PI / 2
-    torus2.position.set(0, -1.4, 0)
-    robotGroup.add(torus2)
+    const t1 = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.025, 8, 72), torusMat1)
+    t1.rotation.x = -Math.PI / 2
+    platformGroup.add(t1)
 
-    // Platform glow light
-    const platformLight = new THREE.PointLight(0x00ff88, 0.55, 3.5)
-    platformLight.position.set(0, -1.35, 0)
-    robotGroup.add(platformLight)
+    const torusMat2 = new THREE.MeshStandardMaterial({
+      color: 0x220000,
+      emissive: new THREE.Color(0xff2200),
+      emissiveIntensity: 0.4,
+      transparent: true,
+      opacity: 0.4,
+    })
+    const t2 = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.012, 8, 72), torusMat2)
+    t2.rotation.x = -Math.PI / 2
+    platformGroup.add(t2)
 
-    // Grid on platform
-    const gridHelper = new THREE.GridHelper(2.0, 8, 0x003322, 0x001a11)
-    gridHelper.position.set(0, -1.41, 0)
-    robotGroup.add(gridHelper)
+    // Red glow under robot
+    const platGlow = new THREE.PointLight(0xff2200, 0.8, 4)
+    platGlow.position.y = 0.15
+    platformGroup.add(platGlow)
+
+    /* ─── STAR FIELD — 600 white points, no lines ─── */
+    const STAR_N = 600
+    const starPos = new Float32Array(STAR_N * 3)
+    for (let i = 0; i < STAR_N; i++) {
+      starPos[i * 3]     = (Math.random() - 0.5) * 80
+      starPos[i * 3 + 1] = (Math.random() - 0.5) * 40
+      starPos[i * 3 + 2] = (Math.random() - 0.5) * 40 - 20
+    }
+    const starGeo = new THREE.BufferGeometry()
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3))
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 1.5,
+      sizeAttenuation: false,
+      transparent: true,
+      opacity: 0.6,
+    })))
 
     /* ─── INPUT TRACKING ─── */
-    let tRotX = 0
     let tRotY = 0
+    let tRotX = 0
     let scrollY = 0
+    let isPaused = false
 
     const onMouse = (e: MouseEvent) => {
-      tRotX = ((e.clientY / window.innerHeight) - 0.5) * 0.28
-      tRotY = ((e.clientX / window.innerWidth)  - 0.5) * 0.38
+      // normalized to [-1,1] then multiplied by spec factor
+      tRotY = ((e.clientX / window.innerWidth) * 2 - 1) * 0.3
+      tRotX = ((e.clientY / window.innerHeight) * 2 - 1) * -0.1
     }
     const onScroll = () => { scrollY = window.scrollY }
+    const onVisibility = () => { isPaused = document.hidden }
     const onResize = () => {
       camera.aspect = container.clientWidth / container.clientHeight
       camera.updateProjectionMatrix()
@@ -285,47 +328,63 @@ export default function ThreeScene() {
     window.addEventListener('mousemove', onMouse)
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
+    document.addEventListener('visibilitychange', onVisibility)
 
-    /* ─── ANIMATION ─── */
+    /* ─── ANIMATION LOOP ─── */
     let raf = 0
     let t = 0
     let headScanDir = 1
 
     const animate = () => {
       raf = requestAnimationFrame(animate)
+
+      // Pause when tab is hidden
+      if (isPaused) return
+
+      /* ── Scroll-based canvas visibility ── */
+      const vh = window.innerHeight
+      if (scrollY > vh * 2.2) {
+        if (container.style.display !== 'none') container.style.display = 'none'
+        return
+      }
+      if (container.style.display === 'none') container.style.display = ''
+
+      // Fade: fully visible 0→80vh, fade out 80→100vh
+      let opacity = 1
+      if (scrollY > vh * 0.8) {
+        opacity = Math.max(0, 1 - (scrollY - vh * 0.8) / (vh * 0.2))
+      }
+      container.style.opacity = String(opacity)
+
       t += 0.016
 
-      // ── Breathing: gentle torso Y scale ──
-      const breath = 0.98 + Math.sin(t * 1.3) * 0.02
-      torsoGroup.scale.set(1, breath, 1)
+      /* ── Idle float: ±0.03 units, 5s cycle ── */
+      outerGroup.position.y = Math.sin(t * 1.257) * 0.03
 
-      // ── Head scan: slowly oscillate ±15° ──
-      const headTarget = headScanDir * 0.26
-      headGroup.rotation.y = lerp(headGroup.rotation.y, headTarget, 0.007)
-      if (Math.abs(headGroup.rotation.y - headTarget) < 0.015) {
-        headScanDir *= -1
-      }
+      /* ── Breathing: torso scaleY 0.98–1.02, 3s cycle ── */
+      torsoGroup.scale.y = 0.98 + Math.sin(t * 2.094) * 0.02
 
-      // ── Arm sway ──
-      const sway = Math.sin(t * 0.85) * 0.09
+      /* ── Head scan: ±0.2 rad, 4s cycle ── */
+      const headTarget = headScanDir * 0.2
+      headGroup.rotation.y = lerp(headGroup.rotation.y, headTarget, 0.005)
+      if (Math.abs(headGroup.rotation.y - headTarget) < 0.015) headScanDir *= -1
+
+      /* ── Eye pulse: emissiveIntensity 1.8–3.0, 1.5s cycle ── */
+      const eyePulse = 1.8 + (Math.sin(t * 4.189) * 0.5 + 0.5) * 1.2
+      eyeMat.emissiveIntensity = eyePulse
+      eyeGlowLight.intensity = 0.6 + Math.sin(t * 4.189) * 0.4
+
+      /* ── Subtle arm sway ── */
+      const sway = Math.sin(t * 0.7) * 0.05
       leftArmGroup.rotation.x  =  sway
       rightArmGroup.rotation.x = -sway
 
-      // ── Mouse parallax tilt ──
-      robotGroup.rotation.x = lerp(robotGroup.rotation.x, tRotX, 0.05)
+      /* ── Mouse tracking: looks at cursor ── */
       robotGroup.rotation.y = lerp(robotGroup.rotation.y, tRotY, 0.05)
+      robotGroup.rotation.x = lerp(robotGroup.rotation.x, tRotX, 0.05)
 
-      // ── Eye + chest light pulse ──
-      const pulse = 0.55 + Math.sin(t * 2.6) * 0.35
-      eyeLightL.intensity   = pulse * 0.8
-      eyeLightR.intensity   = pulse * 0.8
-      chestLight.intensity  = pulse * 0.55
-      platformLight.intensity = 0.4 + Math.sin(t * 1.8) * 0.15
-
-      // ── Scroll: walk toward camera + fade ──
-      const sf = Math.min(scrollY / 580, 1)
-      outerGroup.position.z = lerp(outerGroup.position.z, sf * 3.2, 0.055)
-      renderer.domElement.style.opacity = String(1 - sf * 0.88)
+      /* ── Platform slow rotation ── */
+      platformGroup.rotation.y += 0.003
 
       renderer.render(scene, camera)
     }
@@ -338,10 +397,17 @@ export default function ThreeScene() {
       window.removeEventListener('mousemove', onMouse)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
+      document.removeEventListener('visibilitychange', onVisibility)
+      scene.traverse(obj => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose()
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose())
+          else obj.material.dispose()
+        }
+      })
+      starGeo.dispose()
       renderer.dispose()
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement)
-      }
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
   }, [])
 

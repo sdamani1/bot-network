@@ -1,6 +1,20 @@
 .canvas {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 50vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Vignette overlay via pseudo-element */
+.canvas::after {
+  content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
+  background: radial-gradient(ellipse at 60% 50%, transparent 35%, rgba(5, 5, 8, 0.55) 100%);
   pointer-events: none;
+  z-index: 2;
 }

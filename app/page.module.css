@@ -5,13 +5,12 @@
   background: var(--bg-primary);
 }
 
-/* HERO */
+/* HERO — 220vh total scroll space, left text sticky */
 .hero {
   position: relative;
-  overflow: hidden;
-  min-height: 100vh;
+  min-height: 220vh;
   border-bottom: 1px solid var(--border);
-  background: #0d0d0f;
+  background: #050508;
 }
 
 .scanlines {
@@ -38,33 +37,37 @@
   pointer-events: none;
 }
 
-/* Three.js canvas fills the hero, sits behind text */
+/* Legacy: kept for safety but no longer used */
 .heroCanvas {
   position: absolute;
   inset: 0;
   z-index: 0;
 }
 
-.heroInner {
-  position: relative;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
-  min-height: 100vh;
+/* Left half — sticks in viewport while hero section scrolls */
+.heroSticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 50%;
   display: flex;
   align-items: center;
   z-index: 2;
+  pointer-events: none;   /* pass clicks through to canvas */
 }
 
-/* Text column — left 55% on desktop, full width on mobile */
+/* Text column — re-enable pointer events on actual content */
 .heroLeft {
-  max-width: 580px;
-  width: 55%;
-  padding: 80px 0;
+  width: 100%;
+  max-width: 540px;
+  padding: 80px 0 80px clamp(24px, 4vw, 64px);
+  pointer-events: auto;
 }
 
 @media (max-width: 900px) {
-  .heroLeft { width: 100%; max-width: 100%; padding: 60px 0; }
+  .heroSticky { width: 100%; }
+  .hero { min-height: 100vh; }
+  .heroLeft { max-width: 100%; padding: 60px 24px; }
 }
 
 .heroBadgeRow {
