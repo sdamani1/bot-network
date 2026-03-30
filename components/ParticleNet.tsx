@@ -91,7 +91,7 @@ export default function ParticleNet() {
         // Draw dot
         ctx.beginPath()
         ctx.arc(p.x, p.y, 1.3, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(0,255,136,${p.base * 0.45})`
+        ctx.fillStyle = `rgba(180,180,200,${p.base * 0.35})`
         ctx.fill()
       }
 
@@ -108,7 +108,7 @@ export default function ParticleNet() {
             ctx.beginPath()
             ctx.moveTo(pi.x, pi.y)
             ctx.lineTo(pj.x, pj.y)
-            ctx.strokeStyle = `rgba(0,255,136,${alpha})`
+            ctx.strokeStyle = `rgba(180,180,200,${alpha})`
             ctx.lineWidth = 0.5
             ctx.stroke()
           }

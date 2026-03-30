@@ -34,7 +34,7 @@ export default function GlitchText({
   delay = 200,
   duration = 1200,
 }: Props) {
-  const [displayed, setDisplayed] = useState(() => scramble(text, 0))
+  const [displayed, setDisplayed] = useState(text)
 
   useEffect(() => {
     let progress = 0
@@ -62,6 +62,7 @@ export default function GlitchText({
     <Tag
       className={`${styles.glitch} ${className}`}
       data-text={displayed}
+      suppressHydrationWarning={true}
     >
       {displayed}
     </Tag>

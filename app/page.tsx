@@ -203,9 +203,7 @@ export default function APNLanding() {
               </div>
               <div className={styles.heroMetricDiv} />
               <div className={styles.heroMetric}>
-                <span className={styles.heroMetricNum}>
-                  <StatNum value={991} suffix="%" />
-                </span>
+                <span className={styles.heroMetricNum}>99.1%</span>
                 <span className={styles.heroMetricLabel}>UPTIME SLA</span>
               </div>
               <div className={styles.heroMetricDiv} />
