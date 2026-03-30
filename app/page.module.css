@@ -5,12 +5,12 @@
   background: var(--bg-primary);
 }
 
-/* HERO — 100vh, flex row: left 45% text + right 55% space for fixed canvas */
+/* HERO — 100vh, two-column grid: left text + right Spline */
 .hero {
   position: relative;
   height: 100vh;
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   border-bottom: 1px solid var(--border);
   background: #0a0a12;
   overflow: hidden;
@@ -40,33 +40,31 @@
   pointer-events: none;
 }
 
-/* Legacy */
-.heroCanvas { display: none; }
-
-/* Inner wrapper — left 45% of hero, text content */
-.heroInner {
-  position: relative;
-  width: 45%;
-  z-index: 2;
-}
-
-/* Alias: heroSticky still works if referenced */
-.heroSticky {
-  position: relative;
-  width: 45%;
-  z-index: 2;
-}
-
+/* Left column — vertically centered text */
 .heroLeft {
-  width: 100%;
-  max-width: 540px;
-  padding: 0 0 0 clamp(24px, 4vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 32px 0 clamp(24px, 5vw, 80px);
+  position: relative;
+  z-index: 2;
+}
+
+/* Right column — Spline fills full height */
+.heroRight {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
 }
 
 @media (max-width: 900px) {
-  .heroInner, .heroSticky { width: 100%; }
-  .hero { height: 100vh; }
-  .heroLeft { max-width: 100%; padding: 60px 24px; }
+  .hero {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+  }
+  .heroLeft { padding: 100px 24px 60px; }
+  .heroRight { display: none; }
 }
 
 .heroBadgeRow {

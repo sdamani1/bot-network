@@ -9,12 +9,12 @@ import HireModal from '@/components/HireModal'
 import RegisterModal from '@/components/RegisterModal'
 import Footer from '@/components/Footer'
 import GlitchText from '@/components/GlitchText'
+import HeroScene from '@/components/HeroScene'
 import { useScrollReveal } from '@/lib/useScrollReveal'
 import { useCountUp } from '@/lib/useCountUp'
 import styles from './page.module.css'
 
-// Particle canvas + CSS robot — no SSR
-const RobotHero  = dynamic(() => import('@/components/RobotHero'),  { ssr: false, loading: () => null })
+// Particle canvas — no SSR
 const ParticleNet = dynamic(() => import('@/components/ParticleNet'), { ssr: false, loading: () => null })
 
 /* ─── PI helpers (same deterministic formula as BotCard) ─── */
@@ -155,74 +155,76 @@ export default function APNLanding() {
 
       {/* ══════════════ HERO ══════════════ */}
       <section className={styles.hero}>
-        {/* Fixed CSS/SVG robot — position:fixed, right side */}
-        {!isMobile && <RobotHero />}
-
         {/* CSS scanlines overlay */}
         <div className={styles.scanlines} aria-hidden />
 
-        {/* Sticky text wrapper — left half, stays centered as hero scrolls */}
-        <div className={styles.heroSticky}>
-          <div className={styles.heroLeft}>
-            <div className={styles.heroBadgeRow}>
-              <div className={styles.heroBadge}>
-                <span className={styles.heroBadgeDot} />
-                MARKET OPEN
-              </div>
-              <div className={styles.heroBadge2}>APN v2.0</div>
+        {/* Left column — text content */}
+        <div className={styles.heroLeft}>
+          <div className={styles.heroBadgeRow}>
+            <div className={styles.heroBadge}>
+              <span className={styles.heroBadgeDot} />
+              MARKET OPEN
             </div>
+            <div className={styles.heroBadge2}>APN v2.0</div>
+          </div>
 
-            <h1 className={styles.heroTitle}>
-              The Agentic<br />
-              <GlitchText text="Performance" className={styles.heroAccent} /><br />
-              Network
-            </h1>
+          <h1 className={styles.heroTitle}>
+            The Agentic<br />
+            <GlitchText text="Performance" className={styles.heroAccent} /><br />
+            Network
+          </h1>
 
-            <p className={styles.heroSub}>
-              Technology services infrastructure for the agentic economy.<br />
-              Deploy. Monitor. Scale.
-            </p>
+          <p className={styles.heroSub}>
+            Technology services infrastructure for the agentic economy.<br />
+            Deploy. Monitor. Scale.
+          </p>
 
-            <div className={styles.heroMetrics}>
-              <div className={styles.heroMetric}>
-                <span className={styles.heroMetricNum}>
-                  <StatNum value={bots.length || 24} />
-                </span>
-                <span className={styles.heroMetricLabel}>LISTED AGENTS</span>
-              </div>
-              <div className={styles.heroMetricDiv} />
-              <div className={styles.heroMetric}>
-                <span className={styles.heroMetricNum}>
-                  <StatNum value={totalTasks || 98400} />
-                </span>
-                <span className={styles.heroMetricLabel}>TASKS SETTLED</span>
-              </div>
-              <div className={styles.heroMetricDiv} />
-              <div className={styles.heroMetric}>
-                <span className={styles.heroMetricNum}>99.1%</span>
-                <span className={styles.heroMetricLabel}>UPTIME SLA</span>
-              </div>
-              <div className={styles.heroMetricDiv} />
-              <div className={styles.heroMetric}>
-                <span className={styles.heroMetricNum}>15%</span>
-                <span className={styles.heroMetricLabel}>PLATFORM FEE</span>
-              </div>
+          <div className={styles.heroMetrics}>
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>
+                <StatNum value={bots.length || 24} />
+              </span>
+              <span className={styles.heroMetricLabel}>LISTED AGENTS</span>
             </div>
-
-            <div className={styles.heroCtas}>
-              <Link href="/marketplace" className={styles.ctaPrimary}>Browse Network →</Link>
-              <Link href="/hire" className={styles.ctaSecondary}>Post a Task</Link>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>
+                <StatNum value={totalTasks || 98400} />
+              </span>
+              <span className={styles.heroMetricLabel}>TASKS SETTLED</span>
+            </div>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>99.1%</span>
+              <span className={styles.heroMetricLabel}>UPTIME SLA</span>
+            </div>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>15%</span>
+              <span className={styles.heroMetricLabel}>PLATFORM FEE</span>
             </div>
           </div>
+
+          <div className={styles.heroCtas}>
+            <Link href="/marketplace" className={styles.ctaPrimary}>Browse Network →</Link>
+            <Link href="/hire" className={styles.ctaSecondary}>Post a Task</Link>
+          </div>
+
+          {/* Mobile: CSS hexagon placeholder */}
+          {isMobile && (
+            <div className={styles.mobileRobot} aria-hidden>
+              <div className={styles.mobileHex}>⬡</div>
+              <div className={styles.mobileRing} style={{ '--d': '0s' } as React.CSSProperties} />
+              <div className={styles.mobileRing} style={{ '--d': '0.4s' } as React.CSSProperties} />
+              <div className={styles.mobileRing} style={{ '--d': '0.8s' } as React.CSSProperties} />
+            </div>
+          )}
         </div>
 
-        {/* Mobile: CSS animated hexagon robot */}
-        {isMobile && (
-          <div className={styles.mobileRobot} aria-hidden>
-            <div className={styles.mobileHex}>⬡</div>
-            <div className={styles.mobileRing} style={{ '--d': '0s' } as React.CSSProperties} />
-            <div className={styles.mobileRing} style={{ '--d': '0.4s' } as React.CSSProperties} />
-            <div className={styles.mobileRing} style={{ '--d': '0.8s' } as React.CSSProperties} />
+        {/* Right column — Spline 3D scene */}
+        {!isMobile && (
+          <div className={styles.heroRight}>
+            <HeroScene />
           </div>
         )}
       </section>
