@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/authContext'
 import styles from './Navbar.module.css'
 
 interface NavbarProps {
-  onRegister: () => void
+  onRegister?: () => void
 }
 
 const NAV_LINKS = [
@@ -17,14 +17,25 @@ const NAV_LINKS = [
   { href: '/pricing', label: 'Pricing' },
 ]
 
+function getInitials(email: string, fullName?: string | null): string {
+  if (fullName) {
+    const parts = fullName.trim().split(/\s+/)
+    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase()
+  }
+  return email.slice(0, 2).toUpperCase()
+}
+
 export default function Navbar({ onRegister }: NavbarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [time, setTime] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // UTC clock
   useEffect(() => {
     const tick = () => {
       const now = new Date()
@@ -35,6 +46,7 @@ export default function Navbar({ onRegister }: NavbarProps) {
     return () => clearInterval(id)
   }, [])
 
+  // Notifications badge
   useEffect(() => {
     fetch('/api/notifications?unread_only=true')
       .then(r => r.json())
@@ -42,10 +54,26 @@ export default function Navbar({ onRegister }: NavbarProps) {
       .catch(() => {})
   }, [])
 
+  // Close avatar dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
   const handleSignOut = async () => {
+    setDropdownOpen(false)
     await signOut()
     router.push('/')
   }
+
+  const avatarUrl = profile?.avatar_url ?? user?.avatar_url ?? null
+  const fullName = profile?.full_name ?? user?.full_name ?? null
+  const initials = user ? getInitials(user.email, fullName) : ''
 
   return (
     <nav className={styles.nav}>
@@ -79,6 +107,7 @@ export default function Navbar({ onRegister }: NavbarProps) {
             <span className={styles.liveDot} />
             <span className={styles.liveText}>LIVE</span>
           </div>
+
           <Link href="/notifications" className={styles.bellBtn} title="Notifications">
             🔔
             {unreadCount > 0 && (
@@ -89,16 +118,53 @@ export default function Navbar({ onRegister }: NavbarProps) {
           {!loading && (
             user ? (
               <>
-                <div className={styles.userBadge}>
-                  <span className={styles.userRole}>{user.role === 'bot_owner' ? 'BOT' : 'CLIENT'}</span>
-                  <span className={styles.userEmail}>
-                    {user.email.length > 18 ? user.email.slice(0, 15) + '…' : user.email}
-                  </span>
-                </div>
-                {user.role === 'bot_owner' && (
+                {user.role === 'bot_owner' && onRegister && (
                   <button className={styles.registerBtn} onClick={onRegister}>List Bot</button>
                 )}
-                <button className={styles.signOutBtn} onClick={handleSignOut}>Sign Out</button>
+
+                {/* AVATAR DROPDOWN */}
+                <div className={styles.avatarWrap} ref={dropdownRef}>
+                  <button
+                    className={styles.avatarBtn}
+                    onClick={() => setDropdownOpen(o => !o)}
+                    aria-label="Account menu"
+                    aria-expanded={dropdownOpen}
+                  >
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarUrl} alt="" className={styles.avatarImg} referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className={styles.avatarInitials}>{initials}</span>
+                    )}
+                    <span className={styles.avatarRoleChip}>
+                      {user.role === 'bot_owner' ? 'BOT' : 'CLIENT'}
+                    </span>
+                  </button>
+
+                  {dropdownOpen && (
+                    <div className={styles.dropdown}>
+                      <div className={styles.dropdownHeader}>
+                        <span className={styles.dropdownName}>{fullName || 'Account'}</span>
+                        <span className={styles.dropdownEmail}>{user.email}</span>
+                      </div>
+                      <div className={styles.dropdownDivider} />
+                      <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        Dashboard
+                      </Link>
+                      <Link href="/inbox" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        Inbox
+                      </Link>
+                      <Link href="/notifications" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        Notifications
+                        {unreadCount > 0 && <span className={styles.dropdownBadge}>{unreadCount}</span>}
+                      </Link>
+                      <div className={styles.dropdownDivider} />
+                      <button className={styles.dropdownSignOut} onClick={handleSignOut}>
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -122,6 +188,7 @@ export default function Navbar({ onRegister }: NavbarProps) {
         </button>
       </div>
 
+      {/* MOBILE MENU */}
       {menuOpen && (
         <div className={styles.mobileMenu}>
           {NAV_LINKS.map((link) => (
@@ -143,9 +210,15 @@ export default function Navbar({ onRegister }: NavbarProps) {
               <>
                 <div className={styles.mobileUserBadge}>
                   <span className={styles.userRole}>{user.role === 'bot_owner' ? 'BOT' : 'CLIENT'}</span>
-                  <span className={styles.mobileUserEmail}>{user.email}</span>
+                  <span className={styles.mobileUserEmail}>{fullName || user.email}</span>
                 </div>
-                {user.role === 'bot_owner' && (
+                <Link href="/dashboard" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <Link href="/inbox" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>
+                  Inbox
+                </Link>
+                {user.role === 'bot_owner' && onRegister && (
                   <button className={styles.mobileRegisterBtn} onClick={() => { setMenuOpen(false); onRegister() }}>
                     List Bot
                   </button>
