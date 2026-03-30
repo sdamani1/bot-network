@@ -5,12 +5,15 @@
   background: var(--bg-primary);
 }
 
-/* HERO — 220vh total scroll space, left text sticky */
+/* HERO — 100vh, flex row: left 45% text + right 55% space for fixed canvas */
 .hero {
   position: relative;
-  min-height: 220vh;
+  height: 100vh;
+  display: flex;
+  align-items: center;
   border-bottom: 1px solid var(--border);
-  background: #050508;
+  background: #0a0a12;
+  overflow: hidden;
 }
 
 .scanlines {
@@ -37,36 +40,32 @@
   pointer-events: none;
 }
 
-/* Legacy: kept for safety but no longer used */
-.heroCanvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
+/* Legacy */
+.heroCanvas { display: none; }
 
-/* Left half — sticks in viewport while hero section scrolls */
-.heroSticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  width: 50%;
-  display: flex;
-  align-items: center;
+/* Inner wrapper — left 45% of hero, text content */
+.heroInner {
+  position: relative;
+  width: 45%;
   z-index: 2;
-  pointer-events: none;   /* pass clicks through to canvas */
 }
 
-/* Text column — re-enable pointer events on actual content */
+/* Alias: heroSticky still works if referenced */
+.heroSticky {
+  position: relative;
+  width: 45%;
+  z-index: 2;
+}
+
 .heroLeft {
   width: 100%;
   max-width: 540px;
-  padding: 80px 0 80px clamp(24px, 4vw, 64px);
-  pointer-events: auto;
+  padding: 0 0 0 clamp(24px, 4vw, 64px);
 }
 
 @media (max-width: 900px) {
-  .heroSticky { width: 100%; }
-  .hero { min-height: 100vh; }
+  .heroInner, .heroSticky { width: 100%; }
+  .hero { height: 100vh; }
   .heroLeft { max-width: 100%; padding: 60px 24px; }
 }
 
