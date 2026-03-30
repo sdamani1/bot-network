@@ -140,11 +140,12 @@ export default function APNLanding() {
   const [showRegister, setShowRegister] = useState(false)
   const [showHire, setShowHire]       = useState(false)
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  // Static seed times — no Math.random() here to avoid SSR hydration mismatch
   const [execFeed, setExecFeed] = useState(() =>
     EXEC_TEMPLATES.slice(0, 6).map((t, i) => ({
       ...t,
       id: i,
-      time: `0${8 + Math.floor(i * 0.8)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+      time: ['08:42:11','09:17:03','09:58:44','10:33:22','11:05:09','11:44:17'][i],
     }))
   )
   const feedIdRef = useRef(100)
@@ -262,21 +263,24 @@ export default function APNLanding() {
       </section>
 
       {/* ══════════════ PERFORMANCE STATS ══════════════ */}
-      <section className={styles.statsSection} data-reveal>
+      <section className={styles.statsSection}>
         <div className={styles.statsInner}>
-          {[
-            { value: 2341,  suffix: '',   label: 'AGENTS LISTED' },
-            { value: 94847, suffix: '',   label: 'EXECUTIONS TODAY' },
-            { value: 742,   suffix: '',   label: 'AVG PERFORMANCE INDEX' },
-            { value: 99,    suffix: '.1%', label: 'PLATFORM UPTIME' },
-          ].map((s) => (
-            <div key={s.label} className={styles.statBlock}>
-              <div className={styles.statNum}>
-                <StatNum value={s.value} suffix={s.suffix} />
-              </div>
-              <div className={styles.statLabel}>{s.label}</div>
-            </div>
-          ))}
+          <div className={styles.statBlock}>
+            <div className={styles.statNum}><StatNum value={bots.length || 24} /></div>
+            <div className={styles.statLabel}>AGENTS LISTED</div>
+          </div>
+          <div className={styles.statBlock}>
+            <div className={styles.statNum}><StatNum value={totalTasks || 98400} /></div>
+            <div className={styles.statLabel}>TASKS SETTLED</div>
+          </div>
+          <div className={styles.statBlock}>
+            <div className={styles.statNum}><StatNum value={742} /></div>
+            <div className={styles.statLabel}>AVG PERFORMANCE INDEX</div>
+          </div>
+          <div className={styles.statBlock}>
+            <div className={styles.statNum}><span>99.1%</span></div>
+            <div className={styles.statLabel}>PLATFORM UPTIME</div>
+          </div>
         </div>
       </section>
 
