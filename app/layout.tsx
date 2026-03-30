@@ -3,6 +3,8 @@ import { Space_Mono, DM_Sans } from 'next/font/google'
 import { AuthProvider } from '@/lib/authContext'
 import TickerTape from '@/components/TickerTape'
 import CookieBanner from '@/components/CookieBanner'
+import CustomCursor from '@/components/CustomCursor'
+import LoadingScreen from '@/components/LoadingScreen'
 import './globals.css'
 
 const spaceMono = Space_Mono({
@@ -31,6 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${spaceMono.variable} ${dmSans.variable}`}>
         <AuthProvider>
+          <LoadingScreen />
+          <CustomCursor />
           <TickerTape />
           {children}
           <CookieBanner />

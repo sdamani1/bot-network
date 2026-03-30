@@ -57,3 +57,63 @@ html, body {
   background: rgba(0, 255, 136, 0.15);
   color: var(--accent-green);
 }
+
+/* ── CUSTOM CURSOR (pointer:fine devices only) ── */
+@media (hover: hover) and (pointer: fine) {
+  *, *::before, *::after { cursor: none !important; }
+}
+
+/* ── SCROLL REVEAL ── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity  0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal].revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-reveal][data-delay='1'] { transition-delay: 0.1s; }
+[data-reveal][data-delay='2'] { transition-delay: 0.2s; }
+[data-reveal][data-delay='3'] { transition-delay: 0.3s; }
+[data-reveal][data-delay='4'] { transition-delay: 0.4s; }
+
+/* ── INPUT SCAN-LINE FOCUS ── */
+input:focus, textarea:focus {
+  animation: scanPulse 0.4s ease-out;
+}
+
+@keyframes scanPulse {
+  0%   { box-shadow: inset 0 0 0 1px transparent; }
+  40%  { box-shadow: inset 0 0 0 1px var(--accent-cyan), 0 0 12px rgba(0,229,255,0.15); }
+  100% { box-shadow: none; }
+}
+
+/* ── ANIMATED GRADIENT DIVIDERS ── */
+.gradient-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-green) 30%,
+    var(--accent-blue) 70%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: gradientSlide 4s linear infinite;
+}
+
+@keyframes gradientSlide {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ── NEON BUTTON GLOW (applied globally to .ctaPrimary equivalents) ── */
+a[class*='ctaPrimary']:hover,
+button[class*='submitBtn']:hover:not(:disabled) {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
+}

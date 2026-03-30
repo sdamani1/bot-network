@@ -1,0 +1,50 @@
+.dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;
+  box-shadow: 0 0 8px var(--accent-green), 0 0 16px rgba(0,255,136,0.3);
+  transition: width 0.15s ease, height 0.15s ease, background 0.15s ease;
+}
+
+.dotActive {
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  box-shadow: 0 0 10px #fff;
+}
+
+.ring {
+  position: fixed;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(0, 255, 136, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  will-change: transform;
+  transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  opacity: 0.6;
+}
+
+.ringActive {
+  width: 44px;
+  height: 44px;
+  border-color: rgba(255, 255, 255, 0.5);
+  opacity: 0.8;
+}
+
+.trail {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-green);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99997;
+  will-change: transform, opacity;
+}

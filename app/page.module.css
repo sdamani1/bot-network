@@ -9,7 +9,7 @@
 .hero {
   position: relative;
   overflow: hidden;
-  padding: 80px 24px 72px;
+  min-height: 100vh;
   border-bottom: 1px solid var(--border);
   background: #050508;
 }
@@ -38,11 +38,33 @@
   pointer-events: none;
 }
 
+/* Three.js canvas fills the hero, sits behind text */
+.heroCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
 .heroInner {
   position: relative;
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 24px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
   z-index: 2;
+}
+
+/* Text column — left 55% on desktop, full width on mobile */
+.heroLeft {
+  max-width: 580px;
+  width: 55%;
+  padding: 80px 0;
+}
+
+@media (max-width: 900px) {
+  .heroLeft { width: 100%; max-width: 100%; padding: 60px 0; }
 }
 
 .heroBadgeRow {
@@ -176,7 +198,11 @@
   transition: opacity 0.15s, transform 0.15s;
 }
 
-.ctaPrimary:hover { opacity: 0.88; transform: translateY(-1px); }
+.ctaPrimary:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.45), 0 0 40px rgba(0, 255, 136, 0.18);
+}
 
 .ctaSecondary {
   background: transparent;
@@ -456,6 +482,69 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: border-color 0.25s ease;
+  overflow: hidden;
+}
+
+/* Content wrapper sits above the holo shimmer overlay */
+.infraCardInner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Mobile CSS robot — replaces Three.js on small screens */
+.mobileRobot {
+  position: absolute;
+  right: 4%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  opacity: 0.55;
+}
+
+.mobileHex {
+  font-size: 3.2rem;
+  color: var(--accent-green);
+  filter: drop-shadow(0 0 16px var(--accent-green));
+  animation: hexSpin 10s linear infinite, hexGlow 2.5s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes hexSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes hexGlow {
+  0%, 100% { filter: drop-shadow(0 0 14px var(--accent-green)); }
+  50%       { filter: drop-shadow(0 0 28px var(--accent-green)) drop-shadow(0 0 50px rgba(0,255,136,0.4)); }
+}
+
+.mobileRing {
+  position: absolute;
+  border: 1px solid rgba(0, 255, 136, 0.18);
+  border-radius: 50%;
+  animation: ringExpand 3.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes ringExpand {
+  0%   { width: 70px;  height: 70px;  opacity: 0.5; }
+  100% { width: 220px; height: 220px; opacity: 0; }
+}
+
+/* Market row 3-D tilt overrides */
+.marketRowTilt {
+  cursor: default;
 }
 
 .infraIcon {

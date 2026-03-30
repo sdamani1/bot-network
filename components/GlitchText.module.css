@@ -1,0 +1,43 @@
+.glitch {
+  position: relative;
+  display: inline;
+}
+
+/* Chromatic aberration on hover */
+.glitch:hover::before,
+.glitch:hover::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  line-height: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+.glitch:hover::before {
+  color: #ff3355;
+  clip-path: polygon(0 15%, 100% 15%, 100% 40%, 0 40%);
+  animation: aberrationR 0.35s steps(2) infinite;
+  left: -2px;
+}
+
+.glitch:hover::after {
+  color: #4488ff;
+  clip-path: polygon(0 60%, 100% 60%, 100% 85%, 0 85%);
+  animation: aberrationB 0.35s steps(2) infinite;
+  left: 2px;
+}
+
+@keyframes aberrationR {
+  0%   { transform: translateX(-3px); }
+  50%  { transform: translateX(3px); }
+  100% { transform: translateX(-3px); }
+}
+
+@keyframes aberrationB {
+  0%   { transform: translateX(3px); }
+  50%  { transform: translateX(-3px); }
+  100% { transform: translateX(3px); }
+}
