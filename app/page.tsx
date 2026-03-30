@@ -13,8 +13,8 @@ import { useScrollReveal } from '@/lib/useScrollReveal'
 import { useCountUp } from '@/lib/useCountUp'
 import styles from './page.module.css'
 
-// Three.js + particle canvas — no SSR
-const ThreeScene  = dynamic(() => import('@/components/ThreeScene'),  { ssr: false, loading: () => null })
+// Particle canvas + CSS robot — no SSR
+const RobotHero  = dynamic(() => import('@/components/RobotHero'),  { ssr: false, loading: () => null })
 const ParticleNet = dynamic(() => import('@/components/ParticleNet'), { ssr: false, loading: () => null })
 
 /* ─── PI helpers (same deterministic formula as BotCard) ─── */
@@ -155,8 +155,8 @@ export default function APNLanding() {
 
       {/* ══════════════ HERO ══════════════ */}
       <section className={styles.hero}>
-        {/* Fixed robot canvas — position:fixed in ThreeScene.module.css */}
-        {!isMobile && <ThreeScene />}
+        {/* Fixed CSS/SVG robot — position:fixed, right side */}
+        {!isMobile && <RobotHero />}
 
         {/* CSS scanlines overlay */}
         <div className={styles.scanlines} aria-hidden />

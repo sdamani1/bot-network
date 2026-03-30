@@ -23,8 +23,8 @@ export default function ParticleNet() {
     if (!ctx) return
 
     const isMobile = window.innerWidth < 768
-    const COUNT         = isMobile ? 500  : 1000
-    const CONNECT_N     = isMobile ? 150  : 350   // subset used for line drawing
+    const COUNT         = isMobile ? 200  : 400
+    const CONNECT_N     = isMobile ? 80   : 180   // subset used for line drawing
     const MAX_DIST_SQ   = isMobile ? 100 * 100 : 120 * 120
     const MOUSE_DIST_SQ = 90 * 90
     const MAX_SPEED     = 0.7
