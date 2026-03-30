@@ -1,11 +1,13 @@
 'use client'
 
-// Cinematic evil humanoid robot — fixed right-half canvas (55vw).
-// Bright silver body, glowing red eyes, strong multi-light setup.
-// Canvas hides when hero section scrolls out of viewport.
+// RobotExpressive GLTF hero — fixed 55vw canvas, stays while scrolling.
+// Plays 'Idle' by default; switches to 'Walking' on scroll.
+// robot.rotation.y = scrollY * 0.005 for continuous turn as user scrolls.
+// Eyes pulse red. Canvas stays fixed throughout page.
 
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import styles from './ThreeScene.module.css'
 
 function lerp(a: number, b: number, t: number) {
@@ -20,45 +22,50 @@ export default function ThreeScene() {
     if (!container) return
     if (!container.clientWidth || !container.clientHeight) return
 
+    let mounted = true
+
     /* ─── RENDERER ─── */
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setClearColor(0x0a0a12, 1)
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.2
     container.appendChild(renderer.domElement)
 
     /* ─── SCENE / CAMERA ─── */
     const scene = new THREE.Scene()
+    scene.fog = new THREE.Fog(0x0a0a12, 12, 28)
 
     const camera = new THREE.PerspectiveCamera(
-      50,
+      45,
       container.clientWidth / container.clientHeight,
       0.1,
-      200
+      100
     )
-    camera.position.set(0, 1.5, 5)
-    camera.lookAt(0, 0, 0)
+    camera.position.set(0, 1.5, 4)
+    camera.lookAt(0, 1, 0)
 
     /* ─── LIGHTS ─── */
-    // Bright ambient so robot is never dark
     scene.add(new THREE.AmbientLight(0xffffff, 1.5))
 
-    // Key — top-right
     const keyLight = new THREE.DirectionalLight(0xffffff, 3.0)
     keyLight.position.set(2, 5, 3)
+    keyLight.castShadow = true
+    keyLight.shadow.mapSize.set(1024, 1024)
     scene.add(keyLight)
 
-    // Fill — cool blue-white from left
     const fillLight = new THREE.DirectionalLight(0xaaaaff, 1.5)
     fillLight.position.set(-3, 2, 2)
     scene.add(fillLight)
 
-    // Rim — from behind/below
     const rimLight = new THREE.DirectionalLight(0xffffff, 2.0)
     rimLight.position.set(0, -2, -3)
     scene.add(rimLight)
 
-    // Dramatic overhead spotlight
     const spot = new THREE.SpotLight(0xffffff, 8.0)
     spot.position.set(0, 10, 3)
     spot.angle = 0.5
@@ -67,180 +74,18 @@ export default function ThreeScene() {
     scene.add(spot)
     scene.add(spot.target)
 
-    /* ─── MATERIALS ─── */
-    const primaryMat = new THREE.MeshStandardMaterial({
-      color: 0xd0d0e0,
-      metalness: 0.7,
-      roughness: 0.2,
-    })
-    const secondaryMat = new THREE.MeshStandardMaterial({
-      color: 0xa0a0b0,
-      metalness: 0.6,
-      roughness: 0.3,
-    })
-    const jointMat = new THREE.MeshStandardMaterial({
-      color: 0x808090,
-      metalness: 0.7,
-      roughness: 0.25,
-    })
-    const eyeMat = new THREE.MeshStandardMaterial({
-      color: 0xff0000,
-      emissive: new THREE.Color(0xff0000),
-      emissiveIntensity: 3.0,
-    })
-
-    /* ─── HELPER ─── */
-    function mk(geo: THREE.BufferGeometry, mat: THREE.Material): THREE.Mesh {
-      return new THREE.Mesh(geo, mat)
-    }
-
-    /* ─── GROUPS ─── */
-    const outerGroup = new THREE.Group()
-    scene.add(outerGroup)
-
-    const robotGroup = new THREE.Group()
-    robotGroup.scale.setScalar(1.8)
-    robotGroup.rotation.z = 0.03   // subtle weight shift
-    outerGroup.add(robotGroup)
-
-    // Head group — head scan rotation + initial downward tilt
-    const headGroup = new THREE.Group()
-    headGroup.position.set(0, 1.65, 0)
-    headGroup.rotation.x = 0.14
-    robotGroup.add(headGroup)
-
-    // Torso group — breathing scale
-    const torsoGroup = new THREE.Group()
-    torsoGroup.position.set(0, 0.8, 0)
-    robotGroup.add(torsoGroup)
-
-    // Arm groups — pivot at shoulder center
-    const leftArmGroup = new THREE.Group()
-    leftArmGroup.position.set(-0.37, 1.1, 0)
-    leftArmGroup.rotation.z = 0.06
-    robotGroup.add(leftArmGroup)
-
-    const rightArmGroup = new THREE.Group()
-    rightArmGroup.position.set(0.37, 1.1, 0)
-    rightArmGroup.rotation.z = -0.06
-    robotGroup.add(rightArmGroup)
-
-    /* ─── HEAD ─── */
-    headGroup.add(mk(new THREE.BoxGeometry(0.35, 0.4, 0.3), primaryMat))
-
-    // Eye slots — narrow horizontal bars
-    const eyeGeo = new THREE.BoxGeometry(0.1, 0.038, 0.03)
-    const eyeL = mk(eyeGeo, eyeMat)
-    eyeL.position.set(-0.09, 0.06, 0.156)
-    headGroup.add(eyeL)
-    const eyeR = mk(eyeGeo, eyeMat)
-    eyeR.position.set(0.09, 0.06, 0.156)
-    headGroup.add(eyeR)
-
-    // Red PointLight at head — illuminates surroundings with evil glow
-    const eyeGlowLight = new THREE.PointLight(0xff0000, 2.0, 4)
-    eyeGlowLight.position.set(0, 0.06, 0.4)
-    headGroup.add(eyeGlowLight)
-
-    /* ─── NECK ─── */
-    const neck = mk(new THREE.CylinderGeometry(0.06, 0.075, 0.2, 10), jointMat)
-    neck.position.set(0, 1.46, 0)
-    robotGroup.add(neck)
-
-    /* ─── TORSO ─── */
-    torsoGroup.add(mk(new THREE.BoxGeometry(0.6, 0.8, 0.28), primaryMat))
-    const panel = mk(new THREE.BoxGeometry(0.22, 0.13, 0.01), secondaryMat)
-    panel.position.set(0, 0.1, 0.145)
-    torsoGroup.add(panel)
-
-    /* ─── SHOULDERS ─── */
-    const shoulderL = mk(new THREE.SphereGeometry(0.12, 12, 12), jointMat)
-    shoulderL.position.set(-0.37, 1.1, 0)
-    robotGroup.add(shoulderL)
-    const shoulderR = mk(new THREE.SphereGeometry(0.12, 12, 12), jointMat)
-    shoulderR.position.set(0.37, 1.1, 0)
-    robotGroup.add(shoulderR)
-
-    /* ─── LEFT ARM ─── */
-    const lUA = mk(new THREE.CylinderGeometry(0.08, 0.072, 0.5, 10), secondaryMat)
-    lUA.position.set(0, -0.37, 0)
-    leftArmGroup.add(lUA)
-    const lE = mk(new THREE.SphereGeometry(0.09, 10, 10), jointMat)
-    lE.position.set(0, -0.62, 0)
-    leftArmGroup.add(lE)
-    const lFA = mk(new THREE.CylinderGeometry(0.065, 0.058, 0.45, 10), primaryMat)
-    lFA.position.set(0, -0.89, 0.04)
-    lFA.rotation.x = 0.12
-    leftArmGroup.add(lFA)
-    const lH = mk(new THREE.BoxGeometry(0.12, 0.18, 0.08), secondaryMat)
-    lH.position.set(0, -1.17, 0.07)
-    leftArmGroup.add(lH)
-
-    /* ─── RIGHT ARM ─── */
-    const rUA = mk(new THREE.CylinderGeometry(0.08, 0.072, 0.5, 10), secondaryMat)
-    rUA.position.set(0, -0.37, 0)
-    rightArmGroup.add(rUA)
-    const rE = mk(new THREE.SphereGeometry(0.09, 10, 10), jointMat)
-    rE.position.set(0, -0.62, 0)
-    rightArmGroup.add(rE)
-    const rFA = mk(new THREE.CylinderGeometry(0.065, 0.058, 0.45, 10), primaryMat)
-    rFA.position.set(0, -0.89, 0.04)
-    rFA.rotation.x = 0.12
-    rightArmGroup.add(rFA)
-    const rH = mk(new THREE.BoxGeometry(0.12, 0.18, 0.08), secondaryMat)
-    rH.position.set(0, -1.17, 0.07)
-    rightArmGroup.add(rH)
-
-    /* ─── HIPS ─── */
-    const hips = mk(new THREE.BoxGeometry(0.5, 0.15, 0.25), primaryMat)
-    hips.position.set(0, 0.25, 0)
-    robotGroup.add(hips)
-    const lHJ = mk(new THREE.SphereGeometry(0.1, 10, 10), jointMat)
-    lHJ.position.set(-0.17, 0.14, 0)
-    robotGroup.add(lHJ)
-    const rHJ = mk(new THREE.SphereGeometry(0.1, 10, 10), jointMat)
-    rHJ.position.set(0.17, 0.14, 0)
-    robotGroup.add(rHJ)
-
-    /* ─── UPPER LEGS ─── */
-    const lUL = mk(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 10), secondaryMat)
-    lUL.position.set(-0.17, -0.08, 0)
-    robotGroup.add(lUL)
-    const rUL = mk(new THREE.CylinderGeometry(0.1, 0.09, 0.6, 10), secondaryMat)
-    rUL.position.set(0.17, -0.08, 0)
-    robotGroup.add(rUL)
-
-    /* ─── KNEES ─── */
-    const lK = mk(new THREE.SphereGeometry(0.11, 10, 10), jointMat)
-    lK.position.set(-0.17, -0.41, 0)
-    robotGroup.add(lK)
-    const rK = mk(new THREE.SphereGeometry(0.11, 10, 10), jointMat)
-    rK.position.set(0.17, -0.41, 0)
-    robotGroup.add(rK)
-
-    /* ─── LOWER LEGS ─── */
-    const lLL = mk(new THREE.CylinderGeometry(0.085, 0.075, 0.55, 10), primaryMat)
-    lLL.position.set(-0.17, -0.71, 0)
-    robotGroup.add(lLL)
-    const rLL = mk(new THREE.CylinderGeometry(0.085, 0.075, 0.55, 10), primaryMat)
-    rLL.position.set(0.17, -0.71, 0)
-    robotGroup.add(rLL)
-
-    /* ─── FEET ─── */
-    const lFt = mk(new THREE.BoxGeometry(0.18, 0.08, 0.28), primaryMat)
-    lFt.position.set(-0.17, -1.0, 0.05)
-    robotGroup.add(lFt)
-    const rFt = mk(new THREE.BoxGeometry(0.18, 0.08, 0.28), primaryMat)
-    rFt.position.set(0.17, -1.0, 0.05)
-    robotGroup.add(rFt)
+    // Red eye glow (positioned at head height after scale)
+    const headLight = new THREE.PointLight(0xff0000, 2.0, 4)
+    headLight.position.set(0, 3.2, 0.3)
+    scene.add(headLight)
 
     /* ─── PLATFORM ─── */
     const platformGroup = new THREE.Group()
-    platformGroup.position.y = -1.85   // world Y: robot feet at -1.0 * 1.8 = -1.8
+    platformGroup.position.y = 0
     scene.add(platformGroup)
 
     const t1 = new THREE.Mesh(
-      new THREE.TorusGeometry(0.9, 0.025, 8, 72),
+      new THREE.TorusGeometry(0.9, 0.022, 8, 72),
       new THREE.MeshStandardMaterial({
         color: 0x330000,
         emissive: new THREE.Color(0xff2200),
@@ -263,9 +108,7 @@ export default function ThreeScene() {
     t2.rotation.x = -Math.PI / 2
     platformGroup.add(t2)
 
-    const platGlow = new THREE.PointLight(0xff2200, 0.6, 3)
-    platGlow.position.y = 0.1
-    platformGroup.add(platGlow)
+    platformGroup.add(new THREE.PointLight(0xff2200, 0.6, 3))
 
     /* ─── STAR FIELD ─── */
     const STAR_N = 600
@@ -278,22 +121,80 @@ export default function ThreeScene() {
     const starGeo = new THREE.BufferGeometry()
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3))
     scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1.5,
-      sizeAttenuation: false,
-      transparent: true,
-      opacity: 0.55,
+      color: 0xffffff, size: 1.5, sizeAttenuation: false,
+      transparent: true, opacity: 0.55,
     })))
 
+    /* ─── GLTF MODEL ─── */
+    let mixer: THREE.AnimationMixer | null = null
+    const clock = new THREE.Clock()
+    let currentAction: THREE.AnimationAction | null = null
+    let currentAnimName = ''
+    let robotScene: THREE.Group | null = null
+    const animsByName: Record<string, THREE.AnimationClip> = {}
+    // Collect eye materials for pulsing
+    const eyeMaterials: THREE.MeshStandardMaterial[] = []
+
+    function playAnim(name: string) {
+      if (!mixer || currentAnimName === name) return
+      const clip = animsByName[name]
+      if (!clip) return
+      const prev = currentAction
+      currentAction = mixer.clipAction(clip)
+      currentAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(0.4).play()
+      if (prev) prev.fadeOut(0.4)
+      currentAnimName = name
+    }
+
+    const loader = new GLTFLoader()
+    loader.load(
+      '/models/RobotExpressive.glb',
+      (gltf) => {
+        if (!mounted) return
+
+        robotScene = gltf.scene
+        robotScene.scale.setScalar(2.5)
+        robotScene.position.set(0, 0, 0)
+        scene.add(robotScene)
+
+        // Traverse — collect eye materials, enable shadows
+        robotScene.traverse((child) => {
+          if (!(child instanceof THREE.Mesh)) return
+          child.castShadow = true
+          child.receiveShadow = true
+
+          const mats = Array.isArray(child.material) ? child.material : [child.material]
+          mats.forEach((mat) => {
+            if (!(mat instanceof THREE.MeshStandardMaterial)) return
+            const n = (mat.name + child.name).toLowerCase()
+            if (n.includes('eye') || n.includes('visor')) {
+              mat.emissive.set(0xff0000)
+              mat.emissiveIntensity = 3.0
+              eyeMaterials.push(mat)
+            }
+          })
+        })
+
+        // Build animation map
+        gltf.animations.forEach(clip => { animsByName[clip.name] = clip })
+
+        // Start Idle
+        mixer = new THREE.AnimationMixer(robotScene)
+        playAnim('Idle')
+      },
+      undefined,
+      (err) => { console.warn('GLTFLoader error:', err) }
+    )
+
     /* ─── INPUT TRACKING ─── */
-    let tRotY = 0
-    let tRotX = 0
     let scrollY = 0
+    let tRotX = 0
+    let tRotY = 0
     let isPaused = false
 
     const onMouse = (e: MouseEvent) => {
-      tRotY = ((e.clientX / window.innerWidth) * 2 - 1) * 0.3
-      tRotX = ((e.clientY / window.innerHeight) * 2 - 1) * -0.1
+      // Subtle mouse-look on top of scroll rotation
+      tRotX = ((e.clientY / window.innerHeight) * 2 - 1) * -0.08
     }
     const onScroll = () => { scrollY = window.scrollY }
     const onVisibility = () => { isPaused = document.hidden }
@@ -311,50 +212,38 @@ export default function ThreeScene() {
     /* ─── ANIMATION LOOP ─── */
     let raf = 0
     let t = 0
-    let headScanDir = 1
 
     const animate = () => {
       raf = requestAnimationFrame(animate)
-
       if (isPaused) return
 
-      /* ── Hide canvas when hero section is out of viewport ── */
-      const heroHeight = window.innerHeight
-      if (scrollY >= heroHeight) {
-        if (container.style.display !== 'none') container.style.display = 'none'
-        return
+      const delta = clock.getDelta()
+      t += delta
+
+      // Update mixer (model animations)
+      if (mixer) mixer.update(delta)
+
+      // Switch Idle ↔ Walking based on scroll
+      if (robotScene) {
+        if (scrollY > 20 && currentAnimName !== 'Walking') {
+          playAnim('Walking')
+        } else if (scrollY <= 20 && currentAnimName !== 'Idle') {
+          playAnim('Idle')
+        }
+
+        // Scroll-driven Y rotation — full 360 over ~1260px of scroll
+        robotScene.rotation.y = scrollY * 0.005
+
+        // Subtle mouse-look tilt
+        robotScene.rotation.x = lerp(robotScene.rotation.x, tRotX, 0.05)
       }
-      if (container.style.display === 'none') container.style.display = ''
-      container.style.opacity = '1'
 
-      t += 0.016
+      // Eye pulse — drives both emissiveIntensity and red headLight
+      const pulse = 2.0 + (Math.sin(t * 4.0) * 0.5 + 0.5) * 2.5
+      eyeMaterials.forEach(m => { m.emissiveIntensity = pulse })
+      headLight.intensity = 1.0 + Math.sin(t * 4.0) * 0.8
 
-      /* ── Idle float ── */
-      outerGroup.position.y = Math.sin(t * 1.257) * 0.03
-
-      /* ── Breathing: torso scaleY 0.98–1.02, 3s cycle ── */
-      torsoGroup.scale.y = 0.98 + Math.sin(t * 2.094) * 0.02
-
-      /* ── Head scan: ±0.2 rad ── */
-      const headTarget = headScanDir * 0.2
-      headGroup.rotation.y = lerp(headGroup.rotation.y, headTarget, 0.005)
-      if (Math.abs(headGroup.rotation.y - headTarget) < 0.015) headScanDir *= -1
-
-      /* ── Eye pulse: emissiveIntensity 2.0–4.0 ── */
-      const eyePulse = 2.0 + (Math.sin(t * 4.189) * 0.5 + 0.5) * 2.0
-      eyeMat.emissiveIntensity = eyePulse
-      eyeGlowLight.intensity = 1.2 + Math.sin(t * 4.189) * 0.8
-
-      /* ── Arm sway ── */
-      const sway = Math.sin(t * 0.7) * 0.05
-      leftArmGroup.rotation.x  =  sway
-      rightArmGroup.rotation.x = -sway
-
-      /* ── Mouse tracking ── */
-      robotGroup.rotation.y = lerp(robotGroup.rotation.y, tRotY, 0.05)
-      robotGroup.rotation.x = lerp(robotGroup.rotation.x, tRotX, 0.05)
-
-      /* ── Platform slow rotation ── */
+      // Platform slow rotation
       platformGroup.rotation.y += 0.003
 
       renderer.render(scene, camera)
@@ -364,6 +253,7 @@ export default function ThreeScene() {
 
     /* ─── CLEANUP ─── */
     return () => {
+      mounted = false
       cancelAnimationFrame(raf)
       window.removeEventListener('mousemove', onMouse)
       window.removeEventListener('scroll', onScroll)
