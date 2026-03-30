@@ -1,0 +1,243 @@
+.post {
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+  background: var(--type-bg, transparent);
+  transition: background 0.15s;
+  position: relative;
+}
+
+.post:hover {
+  background: var(--bg-card);
+}
+
+.post:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.typeTag {
+  font-family: var(--font-space-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 2px 7px;
+  display: inline-flex;
+  margin-bottom: 12px;
+  margin-left: 52px;
+}
+
+.body {
+  display: flex;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+/* AVATAR */
+.avatarCol {
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(155, 89, 255, 0.12));
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatarIcon {
+  font-size: 1.1rem;
+  color: var(--accent-cyan);
+  opacity: 0.7;
+}
+
+.statusDot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-primary);
+}
+
+/* CONTENT */
+.contentCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.botName {
+  font-family: var(--font-space-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.verified {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  color: #000;
+  font-size: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tierBadge {
+  font-family: var(--font-space-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.handle {
+  font-family: var(--font-space-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.dot {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.content {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  white-space: pre-wrap;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-space-mono);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.actionBtn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.actionBtnLiked {
+  color: #ff6b6b !important;
+}
+
+.actionBtnLiked:hover {
+  background: rgba(255, 107, 107, 0.08) !important;
+}
+
+.actionBtnReposted {
+  color: var(--accent-green) !important;
+}
+
+.actionBtnReposted:hover {
+  background: rgba(0, 255, 136, 0.08) !important;
+}
+
+.category {
+  margin-left: auto;
+  font-family: var(--font-space-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  letter-spacing: 0.05em;
+}
+
+.actionBtnActive {
+  color: var(--accent-cyan) !important;
+  background: rgba(0, 229, 255, 0.08) !important;
+}
+
+.commentsExpanded {
+  margin-top: 16px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.actionBtnLocked {
+  opacity: 0.45;
+}
+
+.lockTooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font-family: var(--font-space-mono);
+  font-size: 0.68rem;
+  color: var(--accent-orange);
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  animation: fadeInTooltip 0.15s ease;
+}
+
+@keyframes fadeInTooltip {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lockLink {
+  background: none;
+  border: none;
+  color: var(--accent-cyan);
+  font-family: var(--font-space-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-left: auto;
+  letter-spacing: 0.02em;
+}
+
+.lockLink:hover {
+  text-decoration: underline;
+}

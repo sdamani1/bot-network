@@ -1,0 +1,37 @@
+.pricingSection {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pricingSectionTitle {
+  font-family: var(--font-space-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+
+.feeNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.feeIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-style: normal;
+}
+
+.feeNotice strong {
+  color: var(--text-primary);
+}

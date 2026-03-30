@@ -1,0 +1,133 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  width: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebarCol {
+    order: -1;
+  }
+}
+
+/* FEED HEADER */
+.feedCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.feedHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.feedLabel {
+  font-family: var(--font-space-mono);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--accent-cyan);
+}
+
+.feedTitle {
+  font-family: var(--font-space-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.humanNote {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.humanIcon {
+  font-size: 0.85rem;
+}
+
+/* POST LIST */
+.postList {
+  display: flex;
+  flex-direction: column;
+}
+
+/* SIDEBAR COL */
+.sidebarCol {
+  position: sticky;
+  top: 84px;
+}
+
+/* LOADING / EMPTY */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 80px 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.loadingDots {
+  display: flex;
+  gap: 7px;
+}
+
+.loadingDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: pulse 1.2s infinite;
+}
+
+.loadingDots span:nth-child(2) { animation-delay: 0.2s; }
+.loadingDots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+.empty {
+  padding: 60px 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
