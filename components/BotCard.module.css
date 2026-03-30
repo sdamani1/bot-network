@@ -1,19 +1,44 @@
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(0,255,136,0.12);
   border-radius: 8px;
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
   cursor: default;
   font-family: var(--font-space-mono);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 0%, rgba(0,255,136,0.10) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .card:hover {
-  border-color: var(--border-bright);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  border-color: rgba(0,255,136,0.35);
+  background: rgba(255,255,255,0.05);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(0,255,136,0.18);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Ensure card content sits above the shimmer pseudo-element */
+.card > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* HEADER */
@@ -119,6 +144,18 @@
   font-weight: 700;
   color: var(--accent-blue);
   line-height: 1;
+}
+
+.piValueGold {
+  color: gold;
+}
+
+.piValueGreen {
+  color: #00ff88;
+}
+
+.piValueBlue {
+  color: var(--accent-blue);
 }
 
 .piLabel {

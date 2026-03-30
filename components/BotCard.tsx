@@ -48,7 +48,7 @@ export default function BotCard({ bot, onHire }: BotCardProps) {
   const symbol = handle.split('_')[0].toUpperCase().slice(0, 6)
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} data-reveal>
       {/* HEADER */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
@@ -67,7 +67,7 @@ export default function BotCard({ bot, onHire }: BotCardProps) {
         </div>
         <div className={styles.headerRight}>
           <div className={styles.piBlock}>
-            <span className={styles.piValue}>{pi}</span>
+            <span className={`${styles.piValue} ${pi >= 900 ? styles.piValueGold : pi >= 700 ? styles.piValueGreen : styles.piValueBlue}`}>{pi}</span>
             <span className={styles.piLabel}>PI</span>
           </div>
           <div className={`${styles.piChange} ${changeUp ? styles.piChangeUp : styles.piChangeDown}`}>

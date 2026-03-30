@@ -1,12 +1,12 @@
 'use client'
 
-// Holographic wireframe globe — canvas-based.
-// Latitude + longitude lines with depth-based alpha (back is dimmer).
-// Random bot-location nodes with connecting lines.
+// Holographic wireframe globe — canvas-based, DPR-scaled.
+// 30 lat + 30 lon lines, 40 bot-location dots with triple-layer glow + pulse.
+// Connecting arcs between nearby dots. Fade on scroll past hero.
 
 import { useEffect, useRef } from 'react'
 
-const BOT_COUNT = 22
+const BOT_COUNT = 40
 
 export default function NetGlobe() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -17,8 +17,8 @@ export default function NetGlobe() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const SIZE  = 400
-    const DPR   = Math.min(window.devicePixelRatio || 1, 2)
+    const SIZE = 480
+    const DPR  = Math.min(window.devicePixelRatio || 1, 2)
     canvas.width  = SIZE * DPR
     canvas.height = SIZE * DPR
     canvas.style.width  = `${SIZE}px`
@@ -27,16 +27,16 @@ export default function NetGlobe() {
 
     const cx = SIZE / 2
     const cy = SIZE / 2
-    const R  = 158
+    const R  = 188
 
-    const LAT = 10    // latitude rings
-    const LON = 14    // longitude arcs
-    const SEG = 80    // segments per line
+    const LAT = 30
+    const LON = 30
+    const SEG = 80
 
-    // Deterministic-ish node placement (stays stable across re-renders)
+    // Deterministic bot-location nodes — stable across re-renders
     const nodes = Array.from({ length: BOT_COUNT }, (_, i) => {
       const seed1 = (i * 137.508 + 42) % (Math.PI * 2)
-      const seed2 = Math.acos(((i * 73.1) % 2) - 1)
+      const seed2 = Math.acos(Math.max(-1, Math.min(1, ((i * 73.1) % 2) - 1)))
       return { phi: seed2, theta: seed1 }
     })
 
@@ -50,18 +50,37 @@ export default function NetGlobe() {
       return { px: cx + xr, py: cy - y, depth: zr }
     }
 
+    // Front-facing alpha with depth fade
     const depthAlpha = (depth: number, maxAlpha: number) =>
-      Math.max(0.018, ((depth / R + 1) / 2) * maxAlpha)
+      Math.max(0.012, ((depth / R + 1) / 2) * maxAlpha)
 
-    let rot = 0
-    let raf = 0
+    let rot  = 0
+    let time = 0
+    let raf  = 0
+
+    // Scroll fade — check parent section height
+    const getScrollOpacity = () => {
+      const section = canvas.closest('section')
+      const h = section ? section.getBoundingClientRect().height : window.innerHeight
+      const scrolled = window.scrollY
+      return scrolled > h ? 0 : 1
+    }
 
     const frame = () => {
       raf = requestAnimationFrame(frame)
       ctx.clearRect(0, 0, SIZE, SIZE)
-      rot += 0.0035
 
-      // ── Latitude lines ────────────────────────────────────────────────
+      // Apply scroll fade directly to canvas element
+      const targetOpacity = getScrollOpacity()
+      const currentOpacity = parseFloat(canvas.style.opacity || '1')
+      const newOpacity = currentOpacity + (targetOpacity - currentOpacity) * 0.08
+      canvas.style.opacity = String(newOpacity)
+      canvas.style.transition = 'opacity 0.4s ease'
+
+      rot  += 0.003
+      time += 0.016
+
+      // ── Latitude lines ──────────────────────────────────────────────────
       for (let li = 1; li < LAT; li++) {
         const phi = (li / LAT) * Math.PI
         for (let s = 0; s < SEG; s++) {
@@ -69,17 +88,18 @@ export default function NetGlobe() {
           const t1 = ((s + 1) / SEG) * Math.PI * 2
           const p0 = project(phi, t0, rot)
           const p1 = project(phi, t1, rot)
-          const a  = depthAlpha((p0.depth + p1.depth) / 2, 0.28)
+          const avgDepth = (p0.depth + p1.depth) / 2
+          const a = depthAlpha(avgDepth, 0.25)
           ctx.beginPath()
           ctx.moveTo(p0.px, p0.py)
           ctx.lineTo(p1.px, p1.py)
           ctx.strokeStyle = `rgba(0,255,136,${a})`
-          ctx.lineWidth = 0.65
+          ctx.lineWidth = 0.6
           ctx.stroke()
         }
       }
 
-      // ── Longitude lines ───────────────────────────────────────────────
+      // ── Longitude lines ─────────────────────────────────────────────────
       for (let li = 0; li < LON; li++) {
         const theta = (li / LON) * Math.PI * 2
         for (let s = 0; s < SEG; s++) {
@@ -87,56 +107,62 @@ export default function NetGlobe() {
           const ph1 = ((s + 1) / SEG) * Math.PI
           const p0 = project(ph0, theta, rot)
           const p1 = project(ph1, theta, rot)
-          const a  = depthAlpha((p0.depth + p1.depth) / 2, 0.22)
+          const avgDepth = (p0.depth + p1.depth) / 2
+          const a = depthAlpha(avgDepth, 0.25)
           ctx.beginPath()
           ctx.moveTo(p0.px, p0.py)
           ctx.lineTo(p1.px, p1.py)
           ctx.strokeStyle = `rgba(0,255,136,${a})`
-          ctx.lineWidth = 0.65
+          ctx.lineWidth = 0.6
           ctx.stroke()
         }
       }
 
-      // ── Project nodes ─────────────────────────────────────────────────
+      // ── Project nodes ───────────────────────────────────────────────────
       const pn = nodes.map(n => project(n.phi, n.theta, rot))
 
-      // ── Connection lines ──────────────────────────────────────────────
+      // ── Connection arcs between nearby dots ─────────────────────────────
       for (let i = 0; i < pn.length; i++) {
         for (let j = i + 1; j < pn.length; j++) {
           const a = pn[i], b = pn[j]
           const d = Math.hypot(a.px - b.px, a.py - b.py)
-          if (d > 110) continue
+          if (d > 120) continue
           const avgDepth = (a.depth + b.depth) / 2
           if (avgDepth < -R * 0.15) continue
-          const alpha = (1 - d / 110) * ((avgDepth / R + 1) / 2) * 0.55
+          const alpha = (1 - d / 120) * ((avgDepth / R + 1) / 2) * 0.5
           ctx.beginPath()
           ctx.moveTo(a.px, a.py)
           ctx.lineTo(b.px, b.py)
           ctx.strokeStyle = `rgba(0,255,136,${alpha})`
-          ctx.lineWidth = 0.85
+          ctx.lineWidth = 0.8
           ctx.stroke()
         }
       }
 
-      // ── Node dots ─────────────────────────────────────────────────────
-      pn.forEach(({ px, py, depth }) => {
+      // ── Node dots with triple-layer pulse ───────────────────────────────
+      pn.forEach(({ px, py, depth }, idx) => {
         const da = (depth / R + 1) / 2
-        if (da < 0.1) return
-        const a = da * 0.95
-        // Outer glow
+        if (da < 0.08) return
+
+        // Pulse factor: each dot gets a phase offset based on its index
+        const pulse = 0.5 + 0.5 * Math.sin(time * 2.2 + idx * 0.73)
+
+        // Glow (outermost)
         ctx.beginPath()
-        ctx.arc(px, py, 7, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(0,255,136,${a * 0.08})`
+        ctx.arc(px, py, 8 + pulse * 3, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(0,255,136,${da * 0.06 * pulse})`
         ctx.fill()
+
         // Inner glow
         ctx.beginPath()
-        ctx.arc(px, py, 3.5, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(0,255,136,${a * 0.4})`
+        ctx.arc(px, py, 4, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(0,255,136,${da * 0.35})`
         ctx.fill()
+
         // Core
         ctx.beginPath()
         ctx.arc(px, py, 2, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(0,255,136,${a})`
+        ctx.fillStyle = `rgba(0,255,136,${da * (0.7 + 0.3 * pulse)})`
         ctx.fill()
       })
     }
@@ -145,5 +171,10 @@ export default function NetGlobe() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  return <canvas ref={canvasRef} style={{ display: 'block' }} />
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ display: 'block', opacity: 1 }}
+    />
+  )
 }

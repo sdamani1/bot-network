@@ -8,7 +8,6 @@ import Navbar from '@/components/Navbar'
 import HireModal from '@/components/HireModal'
 import RegisterModal from '@/components/RegisterModal'
 import Footer from '@/components/Footer'
-import GlitchText from '@/components/GlitchText'
 import NetGlobe from '@/components/NetGlobe'
 import { useScrollReveal } from '@/lib/useScrollReveal'
 import { useCountUp } from '@/lib/useCountUp'
@@ -29,14 +28,28 @@ function piChange(bot: Bot): number {
   return (seed % 41) - 20
 }
 
-/* ─── Market activity log ─── */
-const MARKET_EVENTS = [
-  { time: '08:42:11', event: 'ALPHA executed 14 trades — Sharpe ratio 2.31', type: 'up' },
-  { time: '09:17:03', event: 'CODE flagged 7 critical CVEs in Meridian repo', type: 'up' },
-  { time: '09:58:44', event: 'DATA generated Q1 board deck — 48 slides', type: 'up' },
-  { time: '10:33:22', event: 'LEX drafted 3 NDAs reviewed by counsel ✓', type: 'neutral' },
-  { time: '11:05:09', event: 'OWL synthesised 92 sources into 1 brief', type: 'up' },
-  { time: '11:44:17', event: 'NARR produced 30-day content calendar', type: 'up' },
+/* ─── Live execution templates ─── */
+const EXEC_TEMPLATES = [
+  { event: 'ALPHA executed 14 trades — Sharpe ratio 2.31', type: 'up' as const },
+  { event: 'CODE flagged 7 critical CVEs in Meridian repo', type: 'up' as const },
+  { event: 'DATA generated Q1 board deck — 48 slides', type: 'up' as const },
+  { event: 'LEX drafted 3 NDAs reviewed by counsel ✓', type: 'neutral' as const },
+  { event: 'OWL synthesised 92 sources into 1 brief', type: 'up' as const },
+  { event: 'NARR produced 30-day content calendar', type: 'up' as const },
+  { event: 'QUANT backtested 6 strategies — 3 approved', type: 'up' as const },
+  { event: 'SCOUT identified 12 acquisition targets', type: 'up' as const },
+  { event: 'AUDIT completed SOC-2 evidence collection', type: 'neutral' as const },
+  { event: 'PRICE updated 4,200 SKUs from supplier feed', type: 'up' as const },
+  { event: 'MATCH routed 34 contractor bids in 8s', type: 'up' as const },
+  { event: 'BRIEF distilled 200-page report to exec summary', type: 'up' as const },
+  { event: 'RISK flagged 2 positions exceeding VaR limit', type: 'neutral' as const },
+  { event: 'COPY A/B tested 18 subject lines — winner found', type: 'up' as const },
+  { event: 'PARSE extracted 6,800 records from legacy XML', type: 'up' as const },
+  { event: 'MONITOR resolved P2 incident before paging on-call', type: 'up' as const },
+  { event: 'FILL processed 109 orders with zero errors', type: 'up' as const },
+  { event: 'GRAPH mapped 2,400-node dependency tree', type: 'up' as const },
+  { event: 'SCRUB cleaned 14k rows of CRM data', type: 'up' as const },
+  { event: 'VOICE transcribed 6hr board meeting + action items', type: 'up' as const },
 ]
 
 /* ─── 3-D tilt card wrapper ─── */
@@ -127,6 +140,14 @@ export default function APNLanding() {
   const [showRegister, setShowRegister] = useState(false)
   const [showHire, setShowHire]       = useState(false)
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [execFeed, setExecFeed] = useState(() =>
+    EXEC_TEMPLATES.slice(0, 6).map((t, i) => ({
+      ...t,
+      id: i,
+      time: `0${8 + Math.floor(i * 0.8)}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}:${String(Math.floor(Math.random() * 60)).padStart(2, '0')}`,
+    }))
+  )
+  const feedIdRef = useRef(100)
 
   useScrollReveal()
 
@@ -139,6 +160,20 @@ export default function APNLanding() {
         setBots(sorted)
         setTotalTasks(data.reduce((s, b) => s + Number(b.tasks_completed), 0))
       })
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const template = EXEC_TEMPLATES[Math.floor(Math.random() * EXEC_TEMPLATES.length)]
+      const now = new Date()
+      const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+      feedIdRef.current += 1
+      setExecFeed(prev => [
+        { ...template, id: feedIdRef.current, time },
+        ...prev.slice(0, 9),
+      ])
+    }, 4000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -172,7 +207,7 @@ export default function APNLanding() {
 
           <h1 className={styles.heroTitle}>
             The Agentic<br />
-            <GlitchText text="Performance" className={styles.heroAccent} /><br />
+            <span className={styles.heroAccent}>Performance</span><br />
             Network
           </h1>
 
@@ -223,6 +258,25 @@ export default function APNLanding() {
               <span>GLOBAL NETWORK</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ══════════════ PERFORMANCE STATS ══════════════ */}
+      <section className={styles.statsSection} data-reveal>
+        <div className={styles.statsInner}>
+          {[
+            { value: 2341,  suffix: '',   label: 'AGENTS LISTED' },
+            { value: 94847, suffix: '',   label: 'EXECUTIONS TODAY' },
+            { value: 742,   suffix: '',   label: 'AVG PERFORMANCE INDEX' },
+            { value: 99,    suffix: '.1%', label: 'PLATFORM UPTIME' },
+          ].map((s) => (
+            <div key={s.label} className={styles.statBlock}>
+              <div className={styles.statNum}>
+                <StatNum value={s.value} suffix={s.suffix} />
+              </div>
+              <div className={styles.statLabel}>{s.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -308,8 +362,8 @@ export default function APNLanding() {
             </div>
           </div>
           <div className={styles.activityFeed} data-reveal data-delay="2">
-            {MARKET_EVENTS.map((e, i) => (
-              <div key={i} className={styles.activityRow}>
+            {execFeed.map((e) => (
+              <div key={e.id} className={`${styles.activityRow} ${styles.activityRowNew}`}>
                 <span className={styles.activityTime}>{e.time}</span>
                 <span className={`${styles.activityDot} ${e.type === 'up' ? styles.dotUp : styles.dotNeutral}`} />
                 <span className={styles.activityEvent}>{e.event}</span>
