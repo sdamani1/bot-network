@@ -5,15 +5,77 @@
   background: var(--bg-primary);
 }
 
-/* HERO — 100vh, two-column grid: left text + right Spline */
+/* ══════════════ HERO ══════════════ */
 .hero {
   position: relative;
   height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
   border-bottom: 1px solid var(--border);
-  background: #0a0a12;
+  background: #07070f;
   overflow: hidden;
+}
+
+/* Animated gradient mesh blobs */
+.heroBlobs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.heroBlob1 {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(80, 40, 200, 0.32) 0%, transparent 65%);
+  filter: blur(90px);
+  top: -180px;
+  left: -120px;
+  animation: blobDrift1 22s ease-in-out infinite;
+}
+
+.heroBlob2 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 120, 160, 0.28) 0%, transparent 65%);
+  filter: blur(80px);
+  bottom: -100px;
+  right: 100px;
+  animation: blobDrift2 28s ease-in-out infinite;
+}
+
+.heroBlob3 {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 200, 120, 0.12) 0%, transparent 65%);
+  filter: blur(70px);
+  top: 40%;
+  left: 35%;
+  animation: blobDrift3 18s ease-in-out infinite;
+}
+
+@keyframes blobDrift1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(70px, 55px) scale(1.08); }
+  66%       { transform: translate(-35px, 85px) scale(0.94); }
+}
+
+@keyframes blobDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-55px, -45px) scale(0.96); }
+  66%       { transform: translate(40px, -70px) scale(1.06); }
+}
+
+@keyframes blobDrift3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(-60px, -50px) scale(1.12); }
 }
 
 .scanlines {
@@ -30,16 +92,6 @@
   z-index: 1;
 }
 
-.heroGrid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-grid) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
-}
-
 /* Left column — vertically centered text */
 .heroLeft {
   display: flex;
@@ -50,11 +102,55 @@
   z-index: 2;
 }
 
-/* Right column — Spline fills full height */
+/* Right column — globe centered */
 .heroRight {
   position: relative;
-  height: 100vh;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* Globe wrapper with ambient glow */
+.globeWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.globeGlow {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+  filter: blur(30px);
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.globeLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-space-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: rgba(0,255,136,0.5);
+}
+
+.globeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 6px var(--accent-green);
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
 }
 
 @media (max-width: 900px) {
@@ -117,21 +213,32 @@
 .heroTitle {
   font-family: var(--font-space-mono);
   font-size: clamp(2.8rem, 7vw, 5rem);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.03em;
-  color: var(--text-primary);
+  color: #ffffff;
   margin-bottom: 24px;
 }
 
 .heroAccent {
-  color: var(--accent-green);
+  display: inline-block;
+  background: linear-gradient(90deg, #00ff88, #4488ff, #aa44ff, #00ff88);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 5s linear infinite;
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
 }
 
 .heroSub {
   font-size: 1rem;
   line-height: 1.7;
-  color: var(--text-secondary);
+  color: rgba(255,255,255,0.6);
   max-width: 520px;
   margin-bottom: 36px;
 }
@@ -493,53 +600,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-/* Mobile CSS robot — replaces Three.js on small screens */
-.mobileRobot {
-  position: absolute;
-  right: 4%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  opacity: 0.55;
-}
-
-.mobileHex {
-  font-size: 3.2rem;
-  color: var(--accent-green);
-  filter: drop-shadow(0 0 16px var(--accent-green));
-  animation: hexSpin 10s linear infinite, hexGlow 2.5s ease-in-out infinite;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes hexSpin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes hexGlow {
-  0%, 100% { filter: drop-shadow(0 0 14px var(--accent-green)); }
-  50%       { filter: drop-shadow(0 0 28px var(--accent-green)) drop-shadow(0 0 50px rgba(0,255,136,0.4)); }
-}
-
-.mobileRing {
-  position: absolute;
-  border: 1px solid rgba(0, 255, 136, 0.18);
-  border-radius: 50%;
-  animation: ringExpand 3.2s cubic-bezier(0, 0, 0.2, 1) infinite;
-  animation-delay: var(--d, 0s);
-}
-
-@keyframes ringExpand {
-  0%   { width: 70px;  height: 70px;  opacity: 0.5; }
-  100% { width: 220px; height: 220px; opacity: 0; }
 }
 
 /* Market row 3-D tilt overrides */

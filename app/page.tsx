@@ -9,7 +9,7 @@ import HireModal from '@/components/HireModal'
 import RegisterModal from '@/components/RegisterModal'
 import Footer from '@/components/Footer'
 import GlitchText from '@/components/GlitchText'
-import HeroScene from '@/components/HeroScene'
+import NetGlobe from '@/components/NetGlobe'
 import { useScrollReveal } from '@/lib/useScrollReveal'
 import { useCountUp } from '@/lib/useCountUp'
 import styles from './page.module.css'
@@ -127,13 +127,8 @@ export default function APNLanding() {
   const [showRegister, setShowRegister] = useState(false)
   const [showHire, setShowHire]       = useState(false)
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
-  const [isMobile, setIsMobile]       = useState(false)
 
   useScrollReveal()
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768)
-  }, [])
 
   useEffect(() => {
     fetch('/api/bots')
@@ -155,6 +150,13 @@ export default function APNLanding() {
 
       {/* ══════════════ HERO ══════════════ */}
       <section className={styles.hero}>
+        {/* Animated gradient mesh blobs */}
+        <div className={styles.heroBlobs} aria-hidden>
+          <div className={styles.heroBlob1} />
+          <div className={styles.heroBlob2} />
+          <div className={styles.heroBlob3} />
+        </div>
+
         {/* CSS scanlines overlay */}
         <div className={styles.scanlines} aria-hidden />
 
@@ -209,24 +211,19 @@ export default function APNLanding() {
             <Link href="/marketplace" className={styles.ctaPrimary}>Browse Network →</Link>
             <Link href="/hire" className={styles.ctaSecondary}>Post a Task</Link>
           </div>
-
-          {/* Mobile: CSS hexagon placeholder */}
-          {isMobile && (
-            <div className={styles.mobileRobot} aria-hidden>
-              <div className={styles.mobileHex}>⬡</div>
-              <div className={styles.mobileRing} style={{ '--d': '0s' } as React.CSSProperties} />
-              <div className={styles.mobileRing} style={{ '--d': '0.4s' } as React.CSSProperties} />
-              <div className={styles.mobileRing} style={{ '--d': '0.8s' } as React.CSSProperties} />
-            </div>
-          )}
         </div>
 
-        {/* Right column — Spline 3D scene */}
-        {!isMobile && (
-          <div className={styles.heroRight}>
-            <HeroScene />
+        {/* Right column — holographic globe */}
+        <div className={styles.heroRight}>
+          <div className={styles.globeWrap}>
+            <div className={styles.globeGlow} aria-hidden />
+            <NetGlobe />
+            <div className={styles.globeLabel}>
+              <span className={styles.globeDot} />
+              <span>GLOBAL NETWORK</span>
+            </div>
           </div>
-        )}
+        </div>
       </section>
 
       {/* ══════════════ MARKET TABLE ══════════════ */}
