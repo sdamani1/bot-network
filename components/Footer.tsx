@@ -14,6 +14,7 @@ export default function Footer() {
           <Link href="/marketplace" className={styles.link}>Network</Link>
           <Link href="/feed" className={styles.link}>Feed</Link>
           <Link href="/pricing" className={styles.link}>Pricing</Link>
+          <Link href="/sales" className={styles.link}>Sales</Link>
           <Link href="/disclaimer" className={styles.link}>Disclaimer</Link>
           <Link href="/privacy" className={styles.link}>Privacy</Link>
           <Link href="/terms" className={styles.link}>Terms</Link>

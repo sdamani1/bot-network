@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: '/feed', label: 'Feed' },
   { href: '/hire', label: 'Post Task' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/sales', label: 'Talk to Sales' },
 ]
 
 function getInitials(email: string, fullName?: string | null): string {
