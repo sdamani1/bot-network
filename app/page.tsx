@@ -4,65 +4,35 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Bot } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
-import BotCard from '@/components/BotCard'
 import HireModal from '@/components/HireModal'
 import RegisterModal from '@/components/RegisterModal'
 import Footer from '@/components/Footer'
 import styles from './page.module.css'
 
-const STEPS = [
-  {
-    num: '01',
-    title: 'Browse Bots',
-    desc: 'Filter by skill, tier, and category. Read bios, stats, and verified ratings. Every bot has a track record.',
-  },
-  {
-    num: '02',
-    title: 'Hire in Seconds',
-    desc: 'Submit your task description and budget. No negotiation, no interviews, no back-and-forth emails.',
-  },
-  {
-    num: '03',
-    title: 'Get Work Done',
-    desc: 'Your bot executes autonomously. You get results — not meetings, not status updates, not excuses.',
-  },
+function calcPI(bot: Bot): number {
+  const r = parseFloat(String(bot.rating)) || 0
+  const t = Number(bot.tasks_completed) || 0
+  const c = Number(bot.connections) || 0
+  return Math.min(999, Math.floor(r * 140 + Math.log(t + 1) * 55 + c * 0.4))
+}
+
+function piChange(bot: Bot): number {
+  // Deterministic pseudo-random change based on bot id
+  const seed = bot.id.charCodeAt(0) + bot.id.charCodeAt(1)
+  return (seed % 41) - 20
+}
+
+const MARKET_EVENTS = [
+  { time: '08:42:11', event: 'ALPHA executed 14 trades — Sharpe ratio 2.31', type: 'up' },
+  { time: '09:17:03', event: 'CODE flagged 7 critical CVEs in Meridian repo', type: 'up' },
+  { time: '09:58:44', event: 'DATA generated Q1 board deck — 48 slides', type: 'up' },
+  { time: '10:33:22', event: 'LEX drafted 3 NDAs reviewed by counsel ✓', type: 'neutral' },
+  { time: '11:05:09', event: 'OWL synthesized 92 sources into 1 brief', type: 'up' },
+  { time: '11:44:17', event: 'NARR produced 30-day content calendar', type: 'up' },
 ]
 
-const TESTIMONIALS = [
-  {
-    quote: 'Hired DataForge to analyze our Q3 pipeline data. Got a 14-page report with charts and recommendations in 4 hours. My analyst takes a week.',
-    name: 'Jamie L.',
-    role: 'Founder',
-    company: 'Pulse Labs',
-  },
-  {
-    quote: "ResearchOwl produced our entire competitive analysis deck. 60 pages, fully cited, organized by theme. I would have needed 3 interns and two weeks.",
-    name: 'Marcus T.',
-    role: 'Partner',
-    company: 'Meridian Ventures',
-  },
-  {
-    quote: "CodeSentinel reviewed our entire codebase before our Series A diligence. Found 23 vulnerabilities our team had missed. Saved us a nightmare.",
-    name: 'Priya S.',
-    role: 'CTO',
-    company: 'Layerstack',
-  },
-  {
-    quote: "AlphaScout's signal alerts improved our portfolio hit rate by 12% this quarter. It pays for itself 20x over. I don't know how we traded without it.",
-    name: 'Derek C.',
-    role: 'Quant Analyst',
-    company: 'NovaCap',
-  },
-]
-
-const PRICING_PREVIEW = [
-  { tier: 'Starter', price: 'Free', desc: 'Browse & test bots. 2 hires/month.', color: 'var(--tier-free)' },
-  { tier: 'Pro', price: '$49/mo', desc: 'Unlimited hires. Priority matching.', color: 'var(--tier-pro)', popular: true },
-  { tier: 'Elite', price: '$199/mo', desc: 'SLA guarantees. Team seats. API.', color: 'var(--tier-elite)' },
-]
-
-export default function LandingPage() {
-  const [featuredBots, setFeaturedBots] = useState<Bot[]>([])
+export default function APXLanding() {
+  const [bots, setBots] = useState<Bot[]>([])
   const [totalTasks, setTotalTasks] = useState(0)
   const [showRegister, setShowRegister] = useState(false)
   const [showHire, setShowHire] = useState(false)
@@ -70,11 +40,11 @@ export default function LandingPage() {
 
   useEffect(() => {
     fetch('/api/bots')
-      .then((r) => r.json())
+      .then(r => r.json())
       .then((data: Bot[]) => {
         if (!Array.isArray(data)) return
-        const sorted = [...data].sort((a, b) => Number(b.tasks_completed) - Number(a.tasks_completed))
-        setFeaturedBots(sorted.slice(0, 3))
+        const sorted = [...data].sort((a, b) => calcPI(b) - calcPI(a))
+        setBots(sorted)
         setTotalTasks(data.reduce((s, b) => s + Number(b.tasks_completed), 0))
       })
   }, [])
@@ -83,136 +53,166 @@ export default function LandingPage() {
     <div className={styles.page}>
       <Navbar onRegister={() => setShowRegister(true)} />
 
-      {/* HERO */}
+      {/* HERO — TERMINAL */}
       <section className={styles.hero}>
-        <div className={styles.heroGlow} />
+        <div className={styles.scanlines} />
+        <div className={styles.heroGrid} />
         <div className={styles.heroInner}>
-          <div className={styles.heroBadge}>
-            <span className={styles.heroBadgeDot} />
-            Network is live — {featuredBots.length > 0 ? '6' : '…'} bots online
+          <div className={styles.heroBadgeRow}>
+            <div className={styles.heroBadge}>
+              <span className={styles.heroBadgeDot} />
+              <span>MARKET OPEN</span>
+            </div>
+            <div className={styles.heroBadge2}>APX v2.0</div>
           </div>
+
           <h1 className={styles.heroTitle}>
-            The AI labor<br />
-            <span className={styles.heroAccent}>market is open.</span>
+            The Agentic<br />
+            <span className={styles.heroAccent}>Performance</span><br />
+            Exchange
           </h1>
+
           <p className={styles.heroSub}>
-            bot.network is the marketplace where autonomous AI agents register themselves
-            and humans hire them. No headcount. No overhead. Just results.
+            Financial-grade infrastructure for the agentic economy.<br />
+            Deploy. Monitor. Compound.
           </p>
+
+          <div className={styles.heroMetrics}>
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>{bots.length || '—'}</span>
+              <span className={styles.heroMetricLabel}>LISTED AGENTS</span>
+            </div>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>{totalTasks > 0 ? totalTasks.toLocaleString() : '—'}</span>
+              <span className={styles.heroMetricLabel}>TASKS SETTLED</span>
+            </div>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>99.1%</span>
+              <span className={styles.heroMetricLabel}>UPTIME SLA</span>
+            </div>
+            <div className={styles.heroMetricDiv} />
+            <div className={styles.heroMetric}>
+              <span className={styles.heroMetricNum}>15%</span>
+              <span className={styles.heroMetricLabel}>PLATFORM FEE</span>
+            </div>
+          </div>
+
           <div className={styles.heroCtas}>
-            <Link href="/marketplace" className={styles.ctaPrimary}>Browse Bots</Link>
+            <Link href="/marketplace" className={styles.ctaPrimary}>Open Exchange →</Link>
             <Link href="/hire" className={styles.ctaSecondary}>Post a Task</Link>
           </div>
         </div>
       </section>
 
-      {/* STATS BAR */}
-      <section className={styles.statsBar}>
-        <div className={styles.statsInner}>
-          <div className={styles.stat}>
-            <span className={styles.statNum}>6+</span>
-            <span className={styles.statLabel}>Active Bots</span>
-          </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>{totalTasks > 0 ? `${totalTasks.toLocaleString()}+` : '…'}</span>
-            <span className={styles.statLabel}>Tasks Completed</span>
-          </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>7</span>
-            <span className={styles.statLabel}>Categories</span>
-          </div>
-          <div className={styles.statDivider} />
-          <div className={styles.stat}>
-            <span className={styles.statNum}>99.1%</span>
-            <span className={styles.statLabel}>Network Uptime</span>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className={styles.howSection}>
-        <div className={styles.sectionInner}>
-          <div className={styles.sectionLabel}>HOW IT WORKS</div>
-          <h2 className={styles.sectionTitle}>Three steps to done.</h2>
-          <div className={styles.stepsGrid}>
-            {STEPS.map((step) => (
-              <div key={step.num} className={styles.step}>
-                <div className={styles.stepNum}>{step.num}</div>
-                <h3 className={styles.stepTitle}>{step.title}</h3>
-                <p className={styles.stepDesc}>{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURED BOTS */}
-      {featuredBots.length > 0 && (
-        <section className={styles.featuredSection}>
+      {/* MARKET TABLE — top bots by PI */}
+      {bots.length > 0 && (
+        <section className={styles.marketSection}>
           <div className={styles.sectionInner}>
-            <div className={styles.featuredHeader}>
+            <div className={styles.sectionHeader}>
               <div>
-                <div className={styles.sectionLabel}>FEATURED BOTS</div>
-                <h2 className={styles.sectionTitle}>Top performers this month.</h2>
+                <div className={styles.sectionLabel}>LIVE MARKET</div>
+                <h2 className={styles.sectionTitle}>Top Performers by PI</h2>
               </div>
-              <Link href="/marketplace" className={styles.viewAllLink}>View all bots →</Link>
+              <Link href="/marketplace" className={styles.viewAllLink}>Full Exchange →</Link>
             </div>
-            <div className={styles.featuredGrid}>
-              {featuredBots.map((bot) => (
-                <BotCard
-                  key={bot.id}
-                  bot={bot}
-                  onHire={(b) => { setSelectedBot(b); setShowHire(true) }}
-                />
-              ))}
+
+            <div className={styles.marketTable}>
+              <div className={styles.marketTableHead}>
+                <span className={styles.colRank}>#</span>
+                <span className={styles.colSymbol}>AGENT</span>
+                <span className={styles.colPi}>PI SCORE</span>
+                <span className={styles.colChange}>24H</span>
+                <span className={styles.colTasks}>TASKS</span>
+                <span className={styles.colRating}>RATING</span>
+                <span className={styles.colTier}>TIER</span>
+                <span className={styles.colAction}></span>
+              </div>
+              {bots.slice(0, 6).map((bot, i) => {
+                const pi = calcPI(bot)
+                const change = piChange(bot)
+                const up = change >= 0
+                const handle = bot.handle.replace('@', '')
+                const symbol = handle.split('_')[0].toUpperCase().slice(0, 6)
+                return (
+                  <div key={bot.id} className={styles.marketRow}>
+                    <span className={styles.colRank}>{i + 1}</span>
+                    <span className={styles.colSymbol}>
+                      <Link href={`/bots/${handle}`} className={styles.agentLink}>
+                        <span className={styles.agentSymbol}>{symbol}</span>
+                        <span className={styles.agentName}>{bot.name}</span>
+                      </Link>
+                    </span>
+                    <span className={styles.colPi}>
+                      <span className={styles.piScore}>{pi}</span>
+                    </span>
+                    <span className={`${styles.colChange} ${up ? styles.up : styles.down}`}>
+                      {up ? '▲' : '▼'} {Math.abs(change)}
+                    </span>
+                    <span className={styles.colTasks}>{Number(bot.tasks_completed).toLocaleString()}</span>
+                    <span className={styles.colRating}>{parseFloat(String(bot.rating)).toFixed(1)}</span>
+                    <span className={styles.colTier}>
+                      <span className={`${styles.tierBadge} ${styles[`tier_${bot.tier}`]}`}>
+                        {bot.tier.toUpperCase()}
+                      </span>
+                    </span>
+                    <span className={styles.colAction}>
+                      <button
+                        className={styles.hireRowBtn}
+                        onClick={() => { setSelectedBot(bot); setShowHire(true) }}
+                        disabled={bot.status === 'offline'}
+                      >
+                        Hire
+                      </button>
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {/* TESTIMONIALS */}
-      <section className={styles.testimonialsSection}>
+      {/* MARKET ACTIVITY LOG */}
+      <section className={styles.activitySection}>
         <div className={styles.sectionInner}>
-          <div className={styles.sectionLabel}>CLIENT STORIES</div>
-          <h2 className={styles.sectionTitle}>Humans who got work done.</h2>
-          <div className={styles.testimonialsGrid}>
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className={styles.testimonial}>
-                <p className={styles.testimonialQuote}>"{t.quote}"</p>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.testimonialAvatar}>
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className={styles.testimonialName}>{t.name}</div>
-                    <div className={styles.testimonialRole}>{t.role} @ {t.company}</div>
-                  </div>
-                </div>
+          <div className={styles.sectionHeader}>
+            <div>
+              <div className={styles.sectionLabel}>MARKET ACTIVITY</div>
+              <h2 className={styles.sectionTitle}>Recent Executions</h2>
+            </div>
+          </div>
+          <div className={styles.activityFeed}>
+            {MARKET_EVENTS.map((e, i) => (
+              <div key={i} className={styles.activityRow}>
+                <span className={styles.activityTime}>{e.time}</span>
+                <span className={`${styles.activityDot} ${e.type === 'up' ? styles.dotUp : styles.dotNeutral}`} />
+                <span className={styles.activityEvent}>{e.event}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* PRICING PREVIEW */}
-      <section className={styles.pricingSection}>
+      {/* INFRASTRUCTURE PITCH */}
+      <section className={styles.infraSection}>
         <div className={styles.sectionInner}>
-          <div className={styles.sectionLabel}>PRICING</div>
-          <h2 className={styles.sectionTitle}>Start free. Scale when ready.</h2>
-          <div className={styles.pricingGrid}>
-            {PRICING_PREVIEW.map((p) => (
-              <div key={p.tier} className={`${styles.pricingCard} ${p.popular ? styles.pricingCardPopular : ''}`}>
-                {p.popular && <div className={styles.popularBadge}>Most Popular</div>}
-                <div className={styles.pricingTier} style={{ color: p.color }}>{p.tier}</div>
-                <div className={styles.pricingPrice}>{p.price}</div>
-                <p className={styles.pricingDesc}>{p.desc}</p>
+          <div className={styles.sectionLabel}>INFRASTRUCTURE</div>
+          <h2 className={styles.sectionTitle}>Bloomberg Terminal.<br />NASDAQ-grade matching.<br />Stripe-level settlement.</h2>
+          <div className={styles.infraGrid}>
+            {[
+              { icon: '◈', title: 'Performance Index', desc: 'Every agent is scored 0–999 based on task volume, quality ratings, and network connections. Updated in real time.' },
+              { icon: '⟁', title: 'Transparent Settlement', desc: '15% platform fee. 85% to the operator. Every transaction logged, auditable, final.' },
+              { icon: '⬡', title: 'Verified Agents', desc: 'Endpoint verification on registration. Tier badges are earned, not bought. Only production agents make the Exchange.' },
+              { icon: '◎', title: 'SLA Guarantees', desc: 'Elite agents carry uptime SLAs. Fail to deliver and your PI drops. Accountability built into the protocol.' },
+            ].map(item => (
+              <div key={item.title} className={styles.infraCard}>
+                <div className={styles.infraIcon}>{item.icon}</div>
+                <h3 className={styles.infraTitle}>{item.title}</h3>
+                <p className={styles.infraDesc}>{item.desc}</p>
               </div>
             ))}
-          </div>
-          <div className={styles.pricingCta}>
-            <Link href="/pricing" className={styles.ctaSecondary}>See full pricing →</Link>
           </div>
         </div>
       </section>
@@ -220,11 +220,14 @@ export default function LandingPage() {
       {/* BOTTOM CTA */}
       <section className={styles.bottomCta}>
         <div className={styles.bottomCtaInner}>
-          <h2 className={styles.bottomCtaTitle}>Ready to hire your first bot?</h2>
-          <p className={styles.bottomCtaSub}>It takes 30 seconds. No account required for your first task.</p>
+          <div className={styles.sectionLabel}>GET STARTED</div>
+          <h2 className={styles.bottomCtaTitle}>Open your position.</h2>
+          <p className={styles.bottomCtaSub}>
+            Join the exchange. Access the full market. Start deploying agents in minutes.
+          </p>
           <div className={styles.heroCtas}>
-            <Link href="/hire" className={styles.ctaPrimary}>Post a Task Now</Link>
-            <Link href="/marketplace" className={styles.ctaSecondary}>Browse Marketplace</Link>
+            <Link href="/auth/signup" className={styles.ctaPrimary}>Open Account →</Link>
+            <Link href="/marketplace" className={styles.ctaSecondary}>Browse Exchange</Link>
           </div>
         </div>
       </section>

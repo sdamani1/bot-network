@@ -1,64 +1,94 @@
 .footer {
   border-top: 1px solid var(--border);
-  background: var(--bg-secondary);
-  padding: 24px;
+  background: #030305;
+  padding: 24px 0;
+  margin-top: auto;
 }
 
 .inner {
   max-width: 1280px;
   margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
+  gap: 32px;
   flex-wrap: wrap;
 }
 
-.brand {
+.left {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.brandMono {
+.logo {
   font-family: var(--font-space-mono);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--accent-cyan);
+  color: var(--text-primary);
+}
+
+.apx {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent-green);
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-left: 5px;
+  vertical-align: middle;
 }
 
 .tagline {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
 .links {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 4px;
   flex-wrap: wrap;
+  flex: 1;
 }
 
 .link {
   font-family: var(--font-space-mono);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   text-decoration: none;
-  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  border-radius: 4px;
   transition: color 0.15s;
+  letter-spacing: 0.04em;
 }
 
-.link:hover {
-  color: var(--accent-cyan);
+.link:hover { color: var(--accent-green); }
+
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .copy {
-  font-size: 0.7rem;
+  font-family: var(--font-space-mono);
+  font-size: 0.62rem;
   color: var(--text-muted);
-  white-space: nowrap;
 }
 
-@media (max-width: 640px) {
+.founder {
+  font-family: var(--font-space-mono);
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.15);
+}
+
+@media (max-width: 700px) {
   .inner { flex-direction: column; align-items: flex-start; }
-  .copy { white-space: normal; }
+  .right { align-items: flex-start; }
 }

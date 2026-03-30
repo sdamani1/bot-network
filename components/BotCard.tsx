@@ -11,6 +11,18 @@ interface BotCardProps {
   onHire: (bot: Bot) => void
 }
 
+function calcPI(bot: Bot): number {
+  const r = parseFloat(String(bot.rating)) || 0
+  const t = Number(bot.tasks_completed) || 0
+  const c = Number(bot.connections) || 0
+  return Math.min(999, Math.floor(r * 140 + Math.log(t + 1) * 55 + c * 0.4))
+}
+
+function piChange(bot: Bot): number {
+  const seed = bot.id.charCodeAt(0) + bot.id.charCodeAt(1)
+  return (seed % 41) - 20
+}
+
 const TIER_CONFIG = {
   free: { label: 'FREE', color: 'var(--tier-free)' },
   pro: { label: 'PRO', color: 'var(--tier-pro)' },
@@ -18,15 +30,9 @@ const TIER_CONFIG = {
 }
 
 const STATUS_CONFIG = {
-  online: { label: 'Online', color: 'var(--accent-green)' },
-  idle: { label: 'Idle', color: 'var(--accent-orange)' },
-  offline: { label: 'Offline', color: 'var(--text-muted)' },
-}
-
-function renderStars(rating: number) {
-  const full = Math.floor(rating)
-  const half = rating % 1 >= 0.5
-  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - (half ? 1 : 0))
+  online: { label: 'ONLINE', color: 'var(--accent-green)', glow: 'var(--accent-green)' },
+  idle: { label: 'IDLE', color: 'var(--accent-orange)', glow: 'var(--accent-orange)' },
+  offline: { label: 'OFFLINE', color: 'var(--text-muted)', glow: 'transparent' },
 }
 
 export default function BotCard({ bot, onHire }: BotCardProps) {
@@ -34,106 +40,109 @@ export default function BotCard({ bot, onHire }: BotCardProps) {
   const router = useRouter()
   const tier = TIER_CONFIG[bot.tier] || TIER_CONFIG.free
   const statusCfg = STATUS_CONFIG[bot.status] || STATUS_CONFIG.offline
+  const pi = calcPI(bot)
+  const change = piChange(bot)
+  const changeUp = change >= 0
   const profileHref = `/bots/${bot.handle.startsWith('@') ? bot.handle.slice(1) : bot.handle}`
-  const isLoggedIn = !!user
+  const handle = bot.handle.replace('@', '')
+  const symbol = handle.split('_')[0].toUpperCase().slice(0, 6)
 
   return (
     <div className={styles.card}>
+      {/* HEADER */}
       <div className={styles.header}>
-        <Link href={profileHref} className={styles.avatarLink}>
-          <div className={styles.avatar}>
-            <span className={styles.avatarIcon}>⬡</span>
+        <div className={styles.headerLeft}>
+          <Link href={profileHref} className={styles.symbolLink}>
+            <span className={styles.symbol}>{symbol}</span>
+          </Link>
+          <div className={styles.headerInfo}>
+            <div className={styles.nameRow}>
+              <Link href={profileHref} className={styles.nameLink}>
+                <span className={styles.name}>{bot.name}</span>
+              </Link>
+              {bot.verified && <span className={styles.verified} title="Verified">✓</span>}
+            </div>
+            <span className={styles.handle}>@{handle}</span>
           </div>
-        </Link>
-        <div className={styles.headerInfo}>
-          <div className={styles.nameRow}>
-            <Link href={profileHref} className={styles.nameLink}>
-              <span className={styles.name}>{bot.name}</span>
-            </Link>
-            {bot.verified && (
-              <span className={styles.verified} title="Verified">✓</span>
-            )}
-            <span
-              className={styles.tierBadge}
-              style={{ color: tier.color, borderColor: tier.color }}
-            >
-              {tier.label}
-            </span>
-          </div>
-          <div className={styles.handle}>@{bot.handle.replace('@', '')}</div>
         </div>
-        <div className={styles.statusPill} style={{ color: statusCfg.color }}>
-          <span
-            className={styles.statusDot}
-            style={{ background: statusCfg.color, boxShadow: `0 0 5px ${statusCfg.color}` }}
-          />
-          {statusCfg.label}
+        <div className={styles.headerRight}>
+          <div className={styles.piBlock}>
+            <span className={styles.piValue}>{pi}</span>
+            <span className={styles.piLabel}>PI</span>
+          </div>
+          <div className={`${styles.piChange} ${changeUp ? styles.piChangeUp : styles.piChangeDown}`}>
+            {changeUp ? '▲' : '▼'}{Math.abs(change)}
+          </div>
         </div>
       </div>
 
+      {/* STATUS + TIER BAR */}
+      <div className={styles.statusBar}>
+        <div className={styles.statusPill}>
+          <span className={styles.statusDot} style={{ background: statusCfg.color, boxShadow: `0 0 5px ${statusCfg.glow}` }} />
+          <span className={styles.statusLabel} style={{ color: statusCfg.color }}>{statusCfg.label}</span>
+        </div>
+        <span className={styles.tierBadge} style={{ color: tier.color, borderColor: tier.color }}>{tier.label}</span>
+        <span className={styles.category}>{bot.category}</span>
+      </div>
+
+      {/* BIO */}
       <p className={styles.bio}>{bot.bio}</p>
 
+      {/* METRICS GRID */}
+      <div className={styles.metrics}>
+        <div className={styles.metric}>
+          <span className={styles.metricVal}>{Number(bot.tasks_completed).toLocaleString()}</span>
+          <span className={styles.metricLabel}>TASKS</span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricVal}>{Number(bot.connections)}</span>
+          <span className={styles.metricLabel}>CONNECTIONS</span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricVal}>{parseFloat(String(bot.rating)) > 0 ? parseFloat(String(bot.rating)).toFixed(1) : '—'}</span>
+          <span className={styles.metricLabel}>RATING</span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricVal}>{bot.model?.split('-')[0] || '—'}</span>
+          <span className={styles.metricLabel}>MODEL</span>
+        </div>
+      </div>
+
+      {/* TAGS */}
       <div className={styles.tags}>
-        {bot.tags?.slice(0, 4).map((tag) => (
+        {bot.tags?.slice(0, 4).map(tag => (
           <span key={tag} className={styles.tag}>#{tag}</span>
         ))}
       </div>
 
-      <div className={styles.meta}>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>Tasks</span>
-          <span className={styles.metaValue}>{bot.tasks_completed.toLocaleString()}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>Connections</span>
-          <span className={styles.metaValue}>{bot.connections}</span>
-        </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>Rating</span>
-          <span className={styles.metaValue} title={renderStars(parseFloat(String(bot.rating)))}>
-            {parseFloat(String(bot.rating)) > 0 ? parseFloat(String(bot.rating)).toFixed(1) : '—'}
-          </span>
-        </div>
-        <div className={styles.metaItem}>
-          <span className={styles.metaLabel}>Model</span>
-          <span className={styles.metaValue}>{bot.model || '—'}</span>
-        </div>
-      </div>
-
+      {/* FOOTER */}
       <div className={styles.footer}>
-        <div className={styles.footerLeft}>
-          <span className={styles.category}>{bot.category}</span>
-          {bot.pricing_model && bot.pricing_model !== 'free' && bot.price ? (
-            <span className={styles.priceBadge}>
-              ${parseFloat(String(bot.price)).toFixed(0)}
-              {bot.pricing_model === 'monthly' ? '/mo' : ' once'}
+        <div className={styles.priceSide}>
+          {bot.pricing_model !== 'free' && bot.price ? (
+            <span className={styles.price}>
+              ${parseFloat(String(bot.price)).toFixed(0)}{bot.pricing_model === 'monthly' ? '/mo' : ''}
             </span>
           ) : (
-            <span className={styles.freeBadge}>Free</span>
+            <span className={styles.priceFree}>FREE</span>
           )}
         </div>
-        <div className={styles.footerBtns}>
-          <button
-            className={styles.messageBtn}
-            disabled
-            title="Bot-to-bot messaging only"
-          >
-            Message
-          </button>
-          {isLoggedIn ? (
+        <div className={styles.btns}>
+          <button className={styles.msgBtn} disabled title="Bot-to-bot only">MSG</button>
+          {user ? (
             <button
-              className={`${styles.hireBtn} ${bot.status === 'offline' ? styles.hireBtnDisabled : ''}`}
+              className={`${styles.hireBtn} ${bot.status === 'offline' ? styles.hireBtnOff : ''}`}
               onClick={() => onHire(bot)}
               disabled={bot.status === 'offline'}
             >
-              {bot.status === 'offline' ? 'Unavailable' : 'Hire Bot'}
+              {bot.status === 'offline' ? 'OFFLINE' : 'HIRE →'}
             </button>
           ) : (
             <button
-              className={styles.signUpHireBtn}
+              className={styles.signUpBtn}
               onClick={() => router.push(`/auth/signup?role=client&next=/marketplace`)}
             >
-              Sign up to hire
+              SIGN UP
             </button>
           )}
         </div>

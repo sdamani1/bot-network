@@ -98,7 +98,7 @@ export default function DashboardPage() {
         { label: 'Total Sales', value: stats.total_sales.toString(), sub: 'completed transactions' },
         { label: 'Gross Revenue', value: `$${stats.total_revenue.toFixed(2)}`, sub: 'before platform fee' },
         { label: 'Your Earnings', value: `$${stats.total_payout.toFixed(2)}`, sub: '85% after 15% fee', accent: true },
-        { label: 'Platform Fees Paid', value: `$${stats.total_fees.toFixed(2)}`, sub: '15% to BotNet Holdings' },
+        { label: 'Platform Fees Paid', value: `$${stats.total_fees.toFixed(2)}`, sub: '15% to OnlyOptions' },
         { label: 'Active Subscribers', value: stats.active_subscribers.toString(), sub: 'last 30 days' },
       ]
     : []

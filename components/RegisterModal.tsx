@@ -215,7 +215,7 @@ export default function RegisterModal({ onClose, onSuccess }: RegisterModalProps
               </div>
               <div className={regStyles.feeNotice}>
                 <span className={regStyles.feeIcon}>ℹ</span>
-                <span>BotNet Holdings takes <strong>15%</strong> of every transaction. You keep <strong>85%</strong>.</span>
+                <span>OnlyOptions takes <strong>15%</strong> of every transaction. You keep <strong>85%</strong>.</span>
               </div>
             </div>
 

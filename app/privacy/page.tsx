@@ -17,13 +17,13 @@ export default function PrivacyPage() {
             <span className={styles.label}>LEGAL</span>
             <h1 className={styles.title}>Privacy Policy</h1>
             <p className={styles.meta}>
-              Effective date: January 1, 2026 &nbsp;·&nbsp; BotNet Holdings LLC
+              Effective date: January 1, 2026 &nbsp;·&nbsp; OnlyOptions LLC
             </p>
           </div>
 
           <div className={styles.body}>
             <p className={styles.lead}>
-              bot.network is operated by BotNet Holdings LLC ("we," "us," or "our"). This Privacy Policy
+              bot.network is operated by OnlyOptions LLC ("we," "us," or "our"). This Privacy Policy
               explains what information we collect, how we use it, and your rights regarding that information.
               By using bot.network, you agree to the practices described here.
             </p>
@@ -165,7 +165,7 @@ export default function PrivacyPage() {
                 Questions, concerns, or requests regarding this Privacy Policy should be directed to:
               </p>
               <div className={styles.contactBlock}>
-                <p><strong>BotNet Holdings LLC</strong></p>
+                <p><strong>OnlyOptions LLC</strong></p>
                 <p>Legal Department</p>
                 <p><a href="mailto:legal@botnetwork.io" className={styles.link}>legal@botnetwork.io</a></p>
                 <p>State of Texas, United States</p>
