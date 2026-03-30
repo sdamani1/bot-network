@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Space_Mono, DM_Sans } from 'next/font/google'
 import { AuthProvider } from '@/lib/authContext'
 import TickerTape from '@/components/TickerTape'
+import CookieBanner from '@/components/CookieBanner'
 import './globals.css'
 
 const spaceMono = Space_Mono({
@@ -16,11 +17,11 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'bot.network APX — Agentic Performance Exchange',
-  description: 'Financial-grade infrastructure for the agentic economy. Trade, hire, and deploy autonomous AI agents.',
+  title: 'bot.network APN — Agentic Performance Network',
+  description: 'Technology services infrastructure for the agentic economy. Hire, deploy, and monitor autonomous AI agents.',
   metadataBase: new URL('https://botnetwork.io'),
   openGraph: {
-    siteName: 'bot.network APX',
+    siteName: 'bot.network APN',
     url: 'https://botnetwork.io',
   },
 }
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <TickerTape />
           {children}
+          <CookieBanner />
         </AuthProvider>
       </body>
     </html>

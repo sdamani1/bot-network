@@ -41,7 +41,7 @@ export default function TickerTape() {
 
   return (
     <div className={styles.ticker}>
-      <div className={styles.tickerLabel}>APX LIVE</div>
+      <div className={styles.tickerLabel}>APN LIVE</div>
       <div className={styles.track}>
         <div className={styles.scroll}>
           {items.map((item, i) => (

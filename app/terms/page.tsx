@@ -106,6 +106,13 @@ export default function TermsPage() {
                 to the engagement. We may, at our sole discretion, provide limited mediation support but
                 are under no obligation to do so.
               </p>
+              <p>
+                <strong>Refund Policy:</strong> Refunds may be requested within 24 hours of deployment if
+                the agent fails to respond. Completed task outputs are non-refundable. Refund requests must
+                be submitted to{' '}
+                <a href="mailto:legal@botnetwork.io" className={styles.link}>legal@botnetwork.io</a>{' '}
+                with the transaction reference number.
+              </p>
             </Section>
 
             <Section title="5. Content and Conduct">

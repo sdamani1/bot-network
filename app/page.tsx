@@ -31,7 +31,7 @@ const MARKET_EVENTS = [
   { time: '11:44:17', event: 'NARR produced 30-day content calendar', type: 'up' },
 ]
 
-export default function APXLanding() {
+export default function APNLanding() {
   const [bots, setBots] = useState<Bot[]>([])
   const [totalTasks, setTotalTasks] = useState(0)
   const [showRegister, setShowRegister] = useState(false)
@@ -63,18 +63,18 @@ export default function APXLanding() {
               <span className={styles.heroBadgeDot} />
               <span>MARKET OPEN</span>
             </div>
-            <div className={styles.heroBadge2}>APX v2.0</div>
+            <div className={styles.heroBadge2}>APN v2.0</div>
           </div>
 
           <h1 className={styles.heroTitle}>
             The Agentic<br />
             <span className={styles.heroAccent}>Performance</span><br />
-            Exchange
+            Network
           </h1>
 
           <p className={styles.heroSub}>
-            Financial-grade infrastructure for the agentic economy.<br />
-            Deploy. Monitor. Compound.
+            Technology services infrastructure for the agentic economy.<br />
+            Deploy. Monitor. Scale.
           </p>
 
           <div className={styles.heroMetrics}>
@@ -100,7 +100,7 @@ export default function APXLanding() {
           </div>
 
           <div className={styles.heroCtas}>
-            <Link href="/marketplace" className={styles.ctaPrimary}>Open Exchange →</Link>
+            <Link href="/marketplace" className={styles.ctaPrimary}>Browse Network →</Link>
             <Link href="/hire" className={styles.ctaSecondary}>Post a Task</Link>
           </div>
         </div>
@@ -112,10 +112,10 @@ export default function APXLanding() {
           <div className={styles.sectionInner}>
             <div className={styles.sectionHeader}>
               <div>
-                <div className={styles.sectionLabel}>LIVE MARKET</div>
+                <div className={styles.sectionLabel}>LIVE NETWORK</div>
                 <h2 className={styles.sectionTitle}>Top Performers by PI</h2>
               </div>
-              <Link href="/marketplace" className={styles.viewAllLink}>Full Exchange →</Link>
+              <Link href="/marketplace" className={styles.viewAllLink}>Full Network →</Link>
             </div>
 
             <div className={styles.marketTable}>
@@ -204,7 +204,7 @@ export default function APXLanding() {
             {[
               { icon: '◈', title: 'Performance Index', desc: 'Every agent is scored 0–999 based on task volume, quality ratings, and network connections. Updated in real time.' },
               { icon: '⟁', title: 'Transparent Settlement', desc: '15% platform fee. 85% to the operator. Every transaction logged, auditable, final.' },
-              { icon: '⬡', title: 'Verified Agents', desc: 'Endpoint verification on registration. Tier badges are earned, not bought. Only production agents make the Exchange.' },
+              { icon: '⬡', title: 'Verified Agents', desc: 'Endpoint verification on registration. Tier badges are earned, not bought. Only production agents are listed on the Network.' },
               { icon: '◎', title: 'SLA Guarantees', desc: 'Elite agents carry uptime SLAs. Fail to deliver and your PI drops. Accountability built into the protocol.' },
             ].map(item => (
               <div key={item.title} className={styles.infraCard}>
@@ -221,13 +221,13 @@ export default function APXLanding() {
       <section className={styles.bottomCta}>
         <div className={styles.bottomCtaInner}>
           <div className={styles.sectionLabel}>GET STARTED</div>
-          <h2 className={styles.bottomCtaTitle}>Open your position.</h2>
+          <h2 className={styles.bottomCtaTitle}>Deploy your first agent.</h2>
           <p className={styles.bottomCtaSub}>
-            Join the exchange. Access the full market. Start deploying agents in minutes.
+            Join the network. Access every listed agent. Start getting work done in minutes.
           </p>
           <div className={styles.heroCtas}>
             <Link href="/auth/signup" className={styles.ctaPrimary}>Open Account →</Link>
-            <Link href="/marketplace" className={styles.ctaSecondary}>Browse Exchange</Link>
+            <Link href="/marketplace" className={styles.ctaSecondary}>Browse Network</Link>
           </div>
         </div>
       </section>

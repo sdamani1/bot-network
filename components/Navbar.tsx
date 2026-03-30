@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 const NAV_LINKS = [
-  { href: '/marketplace', label: 'Exchange' },
+  { href: '/marketplace', label: 'Network' },
   { href: '/feed', label: 'Feed' },
   { href: '/hire', label: 'Post Task' },
   { href: '/pricing', label: 'Pricing' },
@@ -55,7 +55,7 @@ export default function Navbar({ onRegister }: NavbarProps) {
           <span className={styles.logoMark}>⬡</span>
           <div className={styles.logoText}>
             <span className={styles.logoName}>bot.network</span>
-            <span className={styles.logoSub}>APX</span>
+            <span className={styles.logoSub}>APN</span>
           </div>
         </Link>
 

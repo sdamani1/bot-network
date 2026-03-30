@@ -130,6 +130,10 @@ function SignUpForm() {
           </button>
         </form>
 
+        <p className={styles.ageNote}>
+          By creating an account you confirm you are 18 years of age or older.
+        </p>
+
         <p className={styles.footer}>
           Already have an account?{' '}
           <Link
